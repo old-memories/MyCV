@@ -15,10 +15,8 @@ private:
 	Ui::MyCVClass ui;
 	QTextCodec *code;
 	ImageShowLabel *imageShowLabel;
-	QMenuBar* pMenuBar;
-	//QPushButton *showImageButton;
-	QLabel *statusLabel;                //---显示鼠标移动时的实时位置   
-	QLabel *mousePointLabel;        //---显示鼠标位置
+	QMenu* file_menu;
+	QMenu* edit_menu;
 private slots:
 	void on_DisplayMat_button_clicked();
 	void on_DisplayMat_action_selected();

@@ -4,6 +4,8 @@ MyCV::MyCV(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+	resize(2000, 1500);   //设置主窗体大小  
+	setWindowTitle("My openCV");  //设置主窗体标签 
 	/*
 	QWidget*  imgWindow = new  QWidget(this, Qt::Window);
 	imgWindow->resize(600, 400);
@@ -11,23 +13,16 @@ MyCV::MyCV(QWidget *parent)
 	imgWindow->show();
 	*/
 	code = QTextCodec::codecForName("gb18030");
-	imageShowLabel = new ImageShowLabel(this);
-	imageShowLabel->setGeometry(QRect(50, 50, 0, 0));
+	imageShowLabel = new ImageShowLabel(centralWidget());
+	imageShowLabel->setGeometry(QRect(int(this->width()*0.2),0, 0, 0));
 	imageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
-																   //setCentralWidget(imageShowLabel);
 	connect(imageShowLabel, SIGNAL(showRGB(QString)), this, SLOT(showMessage(QString)));
-	pMenuBar = ui.menuBar;
-	QMenu* file_menu = new QMenu(code->toUnicode("文件"));
+    file_menu = new QMenu(code->toUnicode("文件"));
 	QAction* action_open = new QAction(code->toUnicode("打开文件"));
 	file_menu->addAction(action_open);
-	pMenuBar->addMenu(file_menu);
+	menuBar()->addMenu(file_menu);
 	connect(action_open, SIGNAL(triggered(bool)), this, SLOT(on_DisplayMat_action_selected()));
-	//showImageButton = new QPushButton(this);
-	//showImageButton->setGeometry(QRect(50, 50, 200, 80));
-	//showImageButton->setText(code->toUnicode("加载图片"));
-	//connect(showImageButton, SIGNAL(clicked(bool)), this, SLOT(on_DisplayMat_button_clicked()));
-	resize(2000, 1500);   //设置主窗体大小  
-	setWindowTitle("Qt Test");  //设置主窗体标签 
+	
 }
 
 
@@ -71,5 +66,6 @@ void MyCV::on_DisplayMat_action_selected()
 	}
 	else {
 		imageShowLabel->DisplayMat(imageShowLabel->image);
+		this->setWindowTitle(filename + QString(" - My openCV"));
 	}
 }

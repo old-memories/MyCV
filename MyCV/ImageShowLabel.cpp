@@ -78,6 +78,9 @@ QString ImageShowLabel::on_mouseGetRGB(int x, int y)
 	unsigned int r = image.at<cv::Vec3b>(p)[2];
 
 	str =
+		code->toUnicode("坐标：")+
+		"("+ QString::number(x) +", "+ QString::number(y) +")"+
+		code->toUnicode("  三通道值：") +
 		"r=" + QString::number(r) + " " +
 		"g=" + QString::number(g) + " " +
 		"b=" + QString::number(b) + " ";
