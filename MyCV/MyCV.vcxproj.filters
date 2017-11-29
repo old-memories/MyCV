@@ -45,6 +45,15 @@
     <ClCompile Include="GeneratedFiles\qrc_MyCV.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImageShowLabel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_ImageShowLabel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_ImageShowLabel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyCV.h">
@@ -55,6 +64,9 @@
     </CustomBuild>
     <CustomBuild Include="MyCV.qrc">
       <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="ImageShowLabel.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
