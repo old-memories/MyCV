@@ -13,16 +13,18 @@ MyCV::MyCV(QWidget *parent)
 	imgWindow->show();
 	*/
 	code = QTextCodec::codecForName("gb18030");
+	imageStatus = NO_IMAGE;
 	imageShowLabel = new ImageShowLabel(centralWidget());
 	imageShowLabel->setGeometry(QRect(0, 0, 0, 0));
 	imageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
 	connect(imageShowLabel, SIGNAL(showRGB(QString)), this, SLOT(showMessage(QString)));
-
+	connect(imageShowLabel, SIGNAL(imageChanged(void)), this, SLOT(changeImageStatus()));
 	//QMenu
     file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
 	menuBar()->addMenu(file_menu);
 	menuBar()->addMenu(edit_menu);
+	edit_menu->setEnabled(false);
 
 
 	//QAction
@@ -32,9 +34,8 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_open, SIGNAL(triggered(bool)), this, SLOT(on_displayMat_action_selected()));
 
 	//QMenu
-	splitRGB_menu = new QMenu(code->toUnicode("三通道分离"));
+	QMenu* splitRGB_menu = new QMenu(code->toUnicode("三通道分离"));
 	edit_menu->addMenu(splitRGB_menu);
-	splitRGB_menu->setEnabled(false);
 	QAction* action_splitR = new QAction(code->toUnicode("红色"));
 	QAction* action_splitG = new QAction(code->toUnicode("绿色"));
 	QAction* action_splitB = new QAction(code->toUnicode("蓝色"));
@@ -47,18 +48,34 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_splitG, SIGNAL(triggered(bool)), this, SLOT(on_splitG_action_selected()));
 	connect(action_splitB, SIGNAL(triggered(bool)), this, SLOT(on_splitB_action_selected()));
 	connect(action_mergeRGB, SIGNAL(triggered(bool)), this, SLOT(on_mergeRGB_action_selected()));
-
+	
+	
+	//QMenu
+	QAction *action_converetToGrey = new QAction(code->toUnicode("转换灰度图"));
+	edit_menu->addAction(action_converetToGrey);
+	connect(action_converetToGrey, SIGNAL(triggered(bool)), this, SLOT(on_converetToGrey_action_selected()));
 }
 
 
 void MyCV::setEnable_when_displayMat() {
-	splitRGB_menu->setEnabled(true);
-
+	edit_menu->setEnabled(true);
 }
 
 
 void MyCV::showMessage(QString str) {
 	statusBar()->showMessage(str);
+}
+
+void MyCV::changeImageStatus() {
+	if (imageStatus == NO_IMAGE) {
+		imageStatus = IMAGE_REMAINED;
+		return;
+	}
+	if (imageStatus == IMAGE_REMAINED) {
+		imageStatus = IMAGE_CHANGED;
+		QString newWindowTitle(this->windowTitle() + QString(code->toUnicode("（文件已改变）")));
+		this->setWindowTitle(newWindowTitle);
+	}
 }
 
 
@@ -119,5 +136,12 @@ void MyCV::on_splitB_action_selected() {
 }
 
 void MyCV::on_mergeRGB_action_selected() {
+	imageShowLabel->displayMat(src_image);
+}
+
+void MyCV::on_converetToGrey_action_selected() {
+	cv::Mat mat;
+	myCVlib::convertToGrey(src_image, mat);
+	src_image = mat.clone();
 	imageShowLabel->displayMat(src_image);
 }

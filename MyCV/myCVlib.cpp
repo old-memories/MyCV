@@ -43,4 +43,29 @@
 				 k = k + 1;
 			 }
 		 }
+
+
+		 }
+	 void myCVlib::convertToGrey(cv::Mat src, cv::Mat& dst) {
+		 if (src.channels() != 3) {
+			 dst = src.clone();
+			 return;
+		 }
+		 cv::Mat mat;
+		 src.convertTo(mat, CV_8UC3);
+		 dst.create(mat.rows, mat.cols, CV_8UC1);
+		 for (int i = 0; i < mat.rows; i++) {
+			 uchar *src_data = mat.ptr<uchar>(i);
+			 uchar *dst_data = dst.ptr<uchar>(i);
+			 int k = 0;
+			 for (int j = 0; j < mat.cols*mat.channels(); j += 3) {
+				 unsigned int r = (unsigned int)src_data[j + 2];
+				 unsigned int g = (unsigned int)src_data[j + 1];
+				 unsigned int b = (unsigned int)src_data[j];
+				 //Gray = (R*19595 + G*38469 + B*7472) >> 16
+				 //dst_data[k] = (uchar)((r +g << 1 + b) >> 2);
+				 dst_data[k] = (uchar)((r*19595 + g*38469 + b*7472) >> 16);
+				 k = k + 1;
+			 }
+		 }
 	 }

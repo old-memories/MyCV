@@ -28,6 +28,7 @@ public:
 	cv::Mat image;
 signals:
 	void showRGB(QString str);
+	void imageChanged();
 private:
 	QTextCodec *code;
 	QString ImageShowLabel::on_mouseGetRGB(int x, int y);

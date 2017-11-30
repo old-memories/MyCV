@@ -31,8 +31,8 @@ void ImageShowLabel::displayMat(cv::Mat img) {
 		setPixmap(qPixap);
 		//labelimage->resize(labelimage->pixmap()->size());
 	}
-	else 
-		return;
+	emit imageChanged();
+
 	
 	
 }
