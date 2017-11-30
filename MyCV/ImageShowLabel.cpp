@@ -11,15 +11,30 @@ ImageShowLabel::ImageShowLabel(QWidget *parent)
 }
 
 
-void ImageShowLabel::DisplayMat(cv::Mat image) {
-	cv::Mat rgb;
-	cvtColor(image, rgb, CV_BGR2RGB);
-	QImage Qimg = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, rgb.cols*rgb.channels(), QImage::Format_RGB888);
-	QPixmap qPixap = QPixmap::fromImage(Qimg);
-	resize(qPixap.size());
-	//qPixap.scaled(labelimage->size(), Qt::KeepAspectRatio);
-	setPixmap(qPixap);
-	//labelimage->resize(labelimage->pixmap()->size());
+void ImageShowLabel::displayMat(cv::Mat img) {
+	image = img.clone();
+	if (image.channels() == 3) {
+		cv::Mat rgb;
+		cvtColor(image, rgb, CV_BGR2RGB);
+		QImage Qimg = QImage((const unsigned char*)(rgb.data), rgb.cols, rgb.rows, rgb.cols*rgb.channels(), QImage::Format_RGB888);
+		QPixmap qPixap = QPixmap::fromImage(Qimg);
+		resize(qPixap.size());
+		//qPixap.scaled(labelimage->size(), Qt::KeepAspectRatio);
+		setPixmap(qPixap);
+		//labelimage->resize(labelimage->pixmap()->size());
+	}
+	else if (image.channels() == 1) {
+		QImage Qimg = QImage((const unsigned char*)(image.data), image.cols, image.rows, image.cols*image.channels(), QImage::Format_Grayscale8);
+		QPixmap qPixap = QPixmap::fromImage(Qimg);
+		resize(qPixap.size());
+		//qPixap.scaled(labelimage->size(), Qt::KeepAspectRatio);
+		setPixmap(qPixap);
+		//labelimage->resize(labelimage->pixmap()->size());
+	}
+	else 
+		return;
+	
+	
 }
 
 
@@ -72,17 +87,29 @@ QString ImageShowLabel::on_mouseGetRGB(int x, int y)
 		str = code->toUnicode("请打开图片");
 		return str;
 	}
-	cv::Point p(x, y);
-	unsigned int b = image.at<cv::Vec3b>(p)[0];
-	unsigned int g = image.at<cv::Vec3b>(p)[1];
-	unsigned int r = image.at<cv::Vec3b>(p)[2];
-
-	str =
-		code->toUnicode("坐标：")+
-		"("+ QString::number(x) +", "+ QString::number(y) +")"+
-		code->toUnicode("  三通道值：") +
-		"r=" + QString::number(r) + " " +
-		"g=" + QString::number(g) + " " +
-		"b=" + QString::number(b) + " ";
+	std::vector<unsigned int> rgb;
+	int channels = myCVlib::getRGBByPoint(image, x, y, rgb);
+	if (rgb.size() == 3) {
+		str =
+			code->toUnicode("坐标：") +
+			"(" + QString::number(x) + ", " + QString::number(y) + ")" +
+			code->toUnicode("  三通道值：") +
+			"r=" + QString::number(rgb[2]) + " " +
+			"g=" + QString::number(rgb[1]) + " " +
+			"b=" + QString::number(rgb[0]) + " ";
+	}
+	else if (rgb.size() == 1) {
+		str =
+			code->toUnicode("坐标：") +
+			"(" + QString::number(x) + ", " + QString::number(y) + ")" +
+			code->toUnicode("  单通道值：") +
+			"grey=" + QString::number(rgb[0]) + " ";
+	}
+	else {
+		str =
+			code->toUnicode("坐标：") +
+			"(" + QString::number(x) + ", " + QString::number(y) + ")";
+	}
+	
 	return str;
 }

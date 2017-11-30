@@ -54,6 +54,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_ImageShowLabel.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="myCVlib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyCV.h">
@@ -72,6 +75,9 @@
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_MyCV.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="myCVlib.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
