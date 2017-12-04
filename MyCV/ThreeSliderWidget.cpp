@@ -86,6 +86,7 @@ void ThreeSliderWidget::on_clicked_applyButton() {
 	double double_S = (double)(slider_satuation->value()) / 100.0;
 	double double_L = (double)(slider_lightness->value()) / 100.0;
 	emit applyHSL(double_H, double_S, double_L);
+	this->close();
 }
 void ThreeSliderWidget::on_clicked_cancelButton() {
 	this->close();
@@ -97,6 +98,7 @@ void ThreeSliderWidget::on_clicked_undoButton() {
 	value_hue->setText(QString::number(H));
 	value_satuation->setText(QString::number(S));
 	value_lightness->setText(QString::number(L));
+	this->close();
 }
 
 

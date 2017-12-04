@@ -14,4 +14,6 @@ namespace myCVlib {
 	void changeImageRGB(cv::Mat& mat, double deltaR, double deltaG, double deltaB);
 	uchar clamp(double value);
 	void changeImageHSL(cv::Mat& mat, double deltaH, double deltaS, double deltaL);
+	void OTSU(cv::Mat src, cv::Mat& dst);
+
 }

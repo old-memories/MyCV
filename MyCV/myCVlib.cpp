@@ -179,6 +179,8 @@
 	 }
 
 	 void myCVlib::changeImageHSL(cv::Mat& mat, double deltaH, double deltaS, double deltaL) {
+		 if (mat.channels() != 3)
+			 return;
 		 for (int i = 0; i < mat.rows; i++) {
 			 uchar *src_data = mat.ptr<uchar>(i);
 			 for (int j = 0; j < mat.cols*mat.channels(); j += 3) {
@@ -197,5 +199,60 @@
 			 }
 		 }
 	}
+
+	 void myCVlib::OTSU(cv::Mat src, cv::Mat& dst) {
+		 cv::Mat mat;
+		 convertToGrey(src, mat);
+		 int histogram[256] = { 0 };
+		 //double u = 0.0;
+		 double cov = 0.0;
+		 double maxcov = 0.0;
+		 int split_index = 0;
+		 for (int i = 0; i < mat.rows; i++) {
+			 uchar *src_data = mat.ptr<uchar>(i);
+			 for (int j = 0; j < mat.cols*mat.channels(); j++) {
+				 histogram[(int)src_data[j]]++;
+			 }
+		 }
+		 int sum = 0;
+		 for (int i = 0; i < 256; i++) {
+			 sum += histogram[i];
+		 }
+		 //u = sum / (src.rows*src.cols*src.channels()*1.0);
+		 int sum0 = 0;
+		 double w0 = 0.0, w1 = 0.0, u0 = 0.0, u1 = 0.0;
+		 for (int i = 0; i < 255; i++) {
+			 u0 = 0.0;
+			 sum0 = 0;
+			 for (int j = 0; j <= i; j++) {
+				 u0 += j * histogram[j];
+				 sum0 += histogram[j];
+			 }
+			 u0 = u0 / sum0;
+			 w0 = sum0 *1.0 / sum;
+			 u1 = 0.0;
+			 for (int j = i+1; j <= 255; j++) {
+				 u1 += j * histogram[j];
+			 }
+			 u1 = u1 / (sum-sum0);
+			 w1 = 1 - w0;
+			 cov = w0*w1*(u1 - u0)*(u1 - u0);
+			 if (cov > maxcov) {
+				 maxcov = cov;
+				 split_index = i;
+			 }
+		 }
+		 dst.create(mat.rows, mat.cols, CV_8UC1);
+		 for (int i = 0; i < dst.rows; i++) {
+			 uchar *dst_data = dst.ptr<uchar>(i);
+			 uchar *src_data = mat.ptr<uchar>(i);
+			 for (int j = 0; j < dst.cols; j++) {
+				 if ((int)src_data[j] < split_index)
+					 dst_data[j] = 0;
+				 else
+					 dst_data[j] = 255;
+			 }
+		 }
+}
 
 

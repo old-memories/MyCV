@@ -64,6 +64,12 @@ MyCV::MyCV(QWidget *parent)
 	QAction *action_converetToGrey = new QAction(code->toUnicode("转换灰度图"));
 	edit_menu->addAction(action_converetToGrey);
 	connect(action_converetToGrey, SIGNAL(triggered(bool)), this, SLOT(on_converetToGrey_action_selected()));
+	
+	
+	//QMenu
+	QAction *action_OTSU = new QAction(code->toUnicode("OTSU二值化"));
+	edit_menu->addAction(action_OTSU);
+	connect(action_OTSU, SIGNAL(triggered(bool)), this, SLOT(on_OTSU_action_selected()));
 }
 
 
@@ -103,6 +109,7 @@ void MyCV::on_displayMat_action_selected()
 	}
 	else {
 		setEnable_when_displayMat();
+		imageStatus = NO_IMAGE;
 		imageShowLabel->displayMat(src_image);
 		this->setWindowTitle(filename + QString(" - My openCV"));
 	}
@@ -155,6 +162,14 @@ void MyCV::on_converetToGrey_action_selected() {
 	src_image = mat.clone();
 	imageShowLabel->displayMat(src_image);
 }
+
+void MyCV::on_OTSU_action_selected() {
+	cv::Mat mat;
+	myCVlib::OTSU(src_image, mat);
+	src_image = mat.clone();
+	imageShowLabel->displayMat(src_image);
+}
+
 
 
 void MyCV::showadjustHSLWindow() {

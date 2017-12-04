@@ -29,6 +29,7 @@ private slots:
 	void on_splitB_action_selected();
 	void on_mergeRGB_action_selected();
 	void on_converetToGrey_action_selected();
+	void on_OTSU_action_selected();
 	void showMessage(QString str);
 	void changeImageStatus();
 	void showadjustHSLWindow();
