@@ -19,6 +19,10 @@ MyCV::MyCV(QWidget *parent)
 	imageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
 	connect(imageShowLabel, SIGNAL(showRGB(QString)), this, SLOT(showMessage(QString)));
 	connect(imageShowLabel, SIGNAL(imageChanged(void)), this, SLOT(changeImageStatus()));
+	adjustHSLWindow = new ThreeSliderWidget(this);
+	adjustHSLWindow->resize(600,250);
+	adjustHSLWindow->setWindowTitle(code->toUnicode("色相 饱和度 亮度调节"));
+	//adjustHSLWindow->show();
 	//QMenu
     file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
@@ -32,6 +36,12 @@ MyCV::MyCV(QWidget *parent)
 	file_menu->addAction(action_open);
 	ui.mainToolBar->addAction(action_open);
 	connect(action_open, SIGNAL(triggered(bool)), this, SLOT(on_displayMat_action_selected()));
+
+	//QAction
+	QAction* action_adjustHSL = new QAction(code->toUnicode("色相 饱和度 亮度调节"));
+	edit_menu->addAction(action_adjustHSL);
+	connect(action_adjustHSL, SIGNAL(triggered(bool)), this, SLOT(showadjustHSLWindow()));
+	connect(adjustHSLWindow, SIGNAL(applyHSL(double, double, double)), this, SLOT(changeImageHSL(double,double,double)));
 
 	//QMenu
 	QMenu* splitRGB_menu = new QMenu(code->toUnicode("三通道分离"));
@@ -144,4 +154,35 @@ void MyCV::on_converetToGrey_action_selected() {
 	myCVlib::convertToGrey(src_image, mat);
 	src_image = mat.clone();
 	imageShowLabel->displayMat(src_image);
+}
+
+
+void MyCV::showadjustHSLWindow() {
+	double r, g, b, H, S, L;
+	myCVlib::calculateImageRGB(src_image, r, g, b);
+	myCVlib::RGB2HSL(r, g, b, H, S, L);
+	adjustHSLWindow->initHSL(H,S,L);
+	adjustHSLWindow->show();
+}
+
+void MyCV::changeImageHSL(double H, double S,double L) {
+	double r, g, b, imgR, imgG, imgB,imgH,imgS,imgL;
+#if 0
+	myCVlib::HSL2RGB(H,S,L,r,g,b);
+	myCVlib::calculateImageRGB(src_image, imgR, imgG, imgB);
+	double deltaR = r - imgR;
+	double deltaG = g - imgG;
+	double deltaB = b - imgB;
+	myCVlib::changeImageRGB(src_image, deltaR, deltaG, deltaB);
+#endif
+#if 1
+	myCVlib::calculateImageRGB(src_image, imgR, imgG, imgB);
+	myCVlib::RGB2HSL(imgR, imgG, imgB, imgH, imgS, imgL);
+	double deltaH = H - imgH;
+	double deltaS = S - imgS;
+	double deltaL = L - imgL;
+	myCVlib::changeImageHSL(src_image, deltaH, deltaS, deltaL);
+#endif
+	imageShowLabel->displayMat(src_image);
+	
 }
