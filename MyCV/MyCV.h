@@ -25,7 +25,7 @@ private:
 	void setEnable_when_displayMat();
 	enum ImageStatus {NO_IMAGE,IMAGE_REMAINED,IMAGE_CHANGED} imageStatus;
 private slots:
-	void on_displayMat_action_selected();
+	void on_open_action_selected();
 	void on_splitR_action_selected();
 	void on_splitG_action_selected();
 	void on_splitB_action_selected();
@@ -38,5 +38,5 @@ private slots:
 	void changeImageHSL(double H, double S, double L);
 	void showbinarizationWindow();
 	void changeBinarization(int minPixel, int maxPixel);
-
+	void on_saveas_action_selected();
 };
