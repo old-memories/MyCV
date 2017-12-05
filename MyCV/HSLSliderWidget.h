@@ -10,12 +10,12 @@
 #include <QLabel>  
 #include <QTextEdit>  
 #include <opencv.hpp>
-class  ThreeSliderWidget : public QDialog
+class  HSLSliderWidget : public QDialog
 {
 	Q_OBJECT
 
 public:
-	ThreeSliderWidget(QWidget *parent = Q_NULLPTR );
+	HSLSliderWidget(QWidget *parent = Q_NULLPTR );
 	void initHSL(double init_H, double init_S, double init_L);
 signals:
 	void applyHSL(double, double, double);

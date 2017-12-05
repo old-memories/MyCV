@@ -19,10 +19,13 @@ MyCV::MyCV(QWidget *parent)
 	imageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
 	connect(imageShowLabel, SIGNAL(showRGB(QString)), this, SLOT(showMessage(QString)));
 	connect(imageShowLabel, SIGNAL(imageChanged(void)), this, SLOT(changeImageStatus()));
-	adjustHSLWindow = new ThreeSliderWidget(this);
+	adjustHSLWindow = new HSLSliderWidget(this);
 	adjustHSLWindow->resize(600,250);
 	adjustHSLWindow->setWindowTitle(code->toUnicode("色相 饱和度 亮度调节"));
 	//adjustHSLWindow->show();
+	binarizationWindow = new BinarizationSliderWidget(this);
+	binarizationWindow->resize(600, 200);
+	binarizationWindow->setWindowTitle(code->toUnicode("双阈值二值化调节"));
 	//QMenu
     file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
@@ -42,6 +45,12 @@ MyCV::MyCV(QWidget *parent)
 	edit_menu->addAction(action_adjustHSL);
 	connect(action_adjustHSL, SIGNAL(triggered(bool)), this, SLOT(showadjustHSLWindow()));
 	connect(adjustHSLWindow, SIGNAL(applyHSL(double, double, double)), this, SLOT(changeImageHSL(double,double,double)));
+
+	//QAction
+	QAction* action_binarization = new QAction(code->toUnicode("双阈值二值化调节"));
+	edit_menu->addAction(action_binarization);
+	connect(action_binarization, SIGNAL(triggered(bool)), this, SLOT(showbinarizationWindow()));
+	connect(binarizationWindow, SIGNAL(applyBinarization(int, int)), this, SLOT(changeBinarization(int,int)));
 
 	//QMenu
 	QMenu* splitRGB_menu = new QMenu(code->toUnicode("三通道分离"));
@@ -200,4 +209,13 @@ void MyCV::changeImageHSL(double H, double S,double L) {
 #endif
 	imageShowLabel->displayMat(src_image);
 	
+}
+
+void  MyCV::showbinarizationWindow() {
+	binarizationWindow->show();
+}
+void  MyCV::changeBinarization(int minPixel, int maxPixel) {
+	cv::Mat dst;
+	myCVlib::doubleBinarization(src_image, dst, minPixel, maxPixel);
+	imageShowLabel->displayMat(dst);
 }

@@ -15,5 +15,5 @@ namespace myCVlib {
 	uchar clamp(double value);
 	void changeImageHSL(cv::Mat& mat, double deltaH, double deltaS, double deltaL);
 	void OTSU(cv::Mat src, cv::Mat& dst);
-
+	void  doubleBinarization(cv::Mat src, cv::Mat&dst,int minPixel, int maxPixel);
 }

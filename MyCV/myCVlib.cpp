@@ -255,4 +255,20 @@
 		 }
 }
 
+void  myCVlib::doubleBinarization(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel) {
+	cv::Mat mat;
+	convertToGrey(src, mat);
+	dst.create(mat.rows, mat.cols, CV_8UC1);
+	for (int i = 0; i < dst.rows; i++) {
+		uchar *dst_data = dst.ptr<uchar>(i);
+		uchar *src_data = mat.ptr<uchar>(i);
+		for (int j = 0; j < dst.cols; j++) {
+			if ((int)src_data[j] < minPixel|| (int)src_data[j] > maxPixel)
+				dst_data[j] = 0;
+			else
+				dst_data[j] = 255;
+		}
+	}
+}
+
 

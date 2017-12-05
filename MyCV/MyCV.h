@@ -2,8 +2,9 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_MyCV.h"
-#include "ThreeSliderWidget.h"
+#include "HSLSliderWidget.h"
 #include "ImageShowLabel.h"
+#include "BinarizationSliderWidget.h"
 
 class MyCV : public QMainWindow
 {
@@ -16,7 +17,8 @@ private:
 	Ui::MyCVClass ui;
 	QTextCodec *code;
 	ImageShowLabel *imageShowLabel;
-	ThreeSliderWidget *adjustHSLWindow;
+	HSLSliderWidget *adjustHSLWindow;
+	BinarizationSliderWidget *binarizationWindow;
 	QMenu* file_menu;
 	QMenu* edit_menu;
 	cv::Mat src_image;
@@ -34,6 +36,7 @@ private slots:
 	void changeImageStatus();
 	void showadjustHSLWindow();
 	void changeImageHSL(double H, double S, double L);
-
+	void showbinarizationWindow();
+	void changeBinarization(int minPixel, int maxPixel);
 
 };

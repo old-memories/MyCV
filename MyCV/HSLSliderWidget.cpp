@@ -1,6 +1,6 @@
-#include "ThreeSliderWidget.h"
+#include "HSLSliderWidget.h"
 
-ThreeSliderWidget::ThreeSliderWidget(QWidget *parent)
+HSLSliderWidget::HSLSliderWidget(QWidget *parent)
 :
 QDialog(parent)
 {
@@ -51,17 +51,17 @@ QDialog(parent)
 	connect(slider_lightness, SIGNAL(valueChanged(int)), this, SLOT(setValueLightness(int)));
 }
 
-void ThreeSliderWidget::setValueHueLabel(int value) {
+void HSLSliderWidget::setValueHueLabel(int value) {
 	value_hue->setText(QString::number(value));
 }
-void ThreeSliderWidget::setValueSatuationLabel(int value) {
+void HSLSliderWidget::setValueSatuationLabel(int value) {
 	value_satuation->setText(QString::number(value));
 }
-void ThreeSliderWidget::setValueLightness(int value) {
+void HSLSliderWidget::setValueLightness(int value) {
 	value_lightness->setText(QString::number(value));
 }
 
-void ThreeSliderWidget::initHSL(double init_H, double init_S, double init_L) {
+void HSLSliderWidget::initHSL(double init_H, double init_S, double init_L) {
 	int int_H = (int)(init_H*100.0);
 	int int_S = (int)(init_S*100.0);
 	int int_L = (int)(init_L*100.0);
@@ -81,24 +81,24 @@ void ThreeSliderWidget::initHSL(double init_H, double init_S, double init_L) {
 	value_satuation->setText(QString::number(int_S));
 	value_lightness->setText(QString::number(int_L));
 }
-void ThreeSliderWidget::on_clicked_applyButton() {
+void HSLSliderWidget::on_clicked_applyButton() {
 	double double_H = (double)(slider_hue->value()) / 100.0;
 	double double_S = (double)(slider_satuation->value()) / 100.0;
 	double double_L = (double)(slider_lightness->value()) / 100.0;
 	emit applyHSL(double_H, double_S, double_L);
+	//this->close();
+}
+void HSLSliderWidget::on_clicked_cancelButton() {
 	this->close();
 }
-void ThreeSliderWidget::on_clicked_cancelButton() {
-	this->close();
-}
-void ThreeSliderWidget::on_clicked_undoButton() {
+void HSLSliderWidget::on_clicked_undoButton() {
 	slider_hue->setValue(H);
 	slider_satuation->setValue(S);
 	slider_lightness->setValue(L);
 	value_hue->setText(QString::number(H));
 	value_satuation->setText(QString::number(S));
 	value_lightness->setText(QString::number(L));
-	this->close();
+	//this->close();
 }
 
 

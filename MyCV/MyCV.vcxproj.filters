@@ -57,13 +57,19 @@
     <ClCompile Include="myCVlib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ThreeSliderWidget.cpp">
+    <ClCompile Include="HSLSliderWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_ThreeSliderWidget.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_HSLSliderWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_ThreeSliderWidget.cpp">
+    <ClCompile Include="BinarizationSliderWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_BinarizationSliderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_BinarizationSliderWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -80,7 +86,10 @@
     <CustomBuild Include="ImageShowLabel.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="ThreeSliderWidget.h">
+    <CustomBuild Include="HSLSliderWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="BinarizationSliderWidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
