@@ -42,4 +42,5 @@ private slots:
 	void showbinarizationWindow();
 	void changeBinarization(int minPixel, int maxPixel);
 	void on_saveas_action_selected();
+	void on_canny_action_selected();
 };

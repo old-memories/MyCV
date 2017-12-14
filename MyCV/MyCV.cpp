@@ -80,6 +80,11 @@ MyCV::MyCV(QWidget *parent)
 	edit_menu->addAction(action_converetToGrey);
 	connect(action_converetToGrey, SIGNAL(triggered(bool)), this, SLOT(on_converetToGrey_action_selected()));
 
+	//QMenu
+	QAction *action_canny = new QAction(code->toUnicode("Canny±ßÔµ¼ì²â"));
+	edit_menu->addAction(action_canny);
+	connect(action_canny, SIGNAL(triggered(bool)), this, SLOT(on_canny_action_selected()));
+
 
 	//QMenu
 	QAction *action_OTSU = new QAction(code->toUnicode("OTSU¶þÖµ»¯"));
@@ -253,7 +258,7 @@ void  MyCV::showbinarizationWindow() {
 }
 void  MyCV::changeBinarization(int minPixel, int maxPixel) {
 	cv::Mat dst;
-	myCVlib::doubleBinarization(src_image, dst, minPixel, maxPixel);
+	myCVlib::doubleThresholdBinary(src_image, dst, minPixel, maxPixel);
 	imageShowLabel->displayMat(dst);
 }
 
@@ -312,3 +317,11 @@ void MyCV::on_multiple_action_selected() {
 	imageShowLabel->displayMat(dst);
 
 }
+
+void MyCV::on_canny_action_selected() {
+	cv::Mat mat;
+	myCVlib::canny(src_image, mat,40,90);
+	src_image = mat.clone();
+	imageShowLabel->displayMat(src_image);
+}
+

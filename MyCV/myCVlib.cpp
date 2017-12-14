@@ -52,7 +52,7 @@
 		 }
 		 cv::Mat mat;
 		 src.convertTo(mat, CV_8UC3);
-		 dst.create(mat.rows, mat.cols, CV_8UC1);
+		 dst.create(mat.size(), CV_8UC1);
 		 for (int i = 0; i < mat.rows; i++) {
 			 uchar *src_data = mat.ptr<uchar>(i);
 			 uchar *dst_data = dst.ptr<uchar>(i);
@@ -255,7 +255,7 @@
 		 }
 }
 
-void  myCVlib::doubleBinarization(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel) {
+void  myCVlib::doubleThreshold(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel) {
 	cv::Mat mat;
 	convertToGrey(src, mat);
 	dst.create(mat.rows, mat.cols, CV_8UC1);
@@ -263,7 +263,25 @@ void  myCVlib::doubleBinarization(cv::Mat src, cv::Mat&dst, int minPixel, int ma
 		uchar *dst_data = dst.ptr<uchar>(i);
 		uchar *src_data = mat.ptr<uchar>(i);
 		for (int j = 0; j < dst.cols; j++) {
-			if ((int)src_data[j] < minPixel|| (int)src_data[j] > maxPixel)
+			if ((int)src_data[j] < minPixel)
+				dst_data[j] = 0;
+			else if ((int)src_data[j] > maxPixel)
+				dst_data[j] = 255;
+			else
+				dst_data[j] = src_data[j];
+		}
+	}
+}
+
+void  myCVlib::doubleThresholdBinary(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel) {
+	cv::Mat mat;
+	convertToGrey(src, mat);
+	dst.create(mat.rows, mat.cols, CV_8UC1);
+	for (int i = 0; i < dst.rows; i++) {
+		uchar *dst_data = dst.ptr<uchar>(i);
+		uchar *src_data = mat.ptr<uchar>(i);
+		for (int j = 0; j < dst.cols; j++) {
+			if ((int)src_data[j] < minPixel || (int)src_data[j] > maxPixel)
 				dst_data[j] = 0;
 			else
 				dst_data[j] = 255;
@@ -279,7 +297,7 @@ void myCVlib::op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	if (src1.channels() == 3 && src2.channels() == 1) {
 		cv::Mat src1_grey;
 		convertToGrey(src1, src1_grey);
-		dst.create(src1_grey.rows, src1_grey.cols, CV_8UC1);
+		dst.create(src1_grey.size(), CV_8UC1);
 		for (int i = 0; i < src1_grey.rows; i++) {
 			uchar *src1_data = src1_grey.ptr<uchar>(i);
 			uchar *src2_data = src2.ptr<uchar>(i);
@@ -292,7 +310,7 @@ void myCVlib::op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	}
 
 	else if (src1.channels() == 1 && src2.channels() == 1) {
-		dst.create(src1.rows, src1.cols, CV_8UC1);
+		dst.create(src1.size(), CV_8UC1);
 		for (int i = 0; i < src1.rows; i++) {
 			uchar *src1_data = src1.ptr<uchar>(i);
 			uchar *src2_data = src2.ptr<uchar>(i);
@@ -316,7 +334,7 @@ void myCVlib::op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	if (src1.channels() ==3 && src2.channels()==1) {
 		cv::Mat src1_grey;
 		convertToGrey(src1, src1_grey);
-		dst.create(src1_grey.rows, src1_grey.cols, CV_8UC1);
+		dst.create(src1_grey.size(), CV_8UC1);
 		for (int i = 0; i < src1_grey.rows; i++) {
 			uchar *src1_data = src1_grey.ptr<uchar>(i);
 			uchar *src2_data = src2.ptr<uchar>(i);
@@ -329,7 +347,7 @@ void myCVlib::op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	}
 
 	else if (src1.channels() == 1 && src2.channels() == 1) {
-		dst.create(src1.rows, src1.cols, CV_8UC1);
+		dst.create(src1.size(), CV_8UC1);
 		for (int i = 0; i < src1.rows; i++) {
 			uchar *src1_data = src1.ptr<uchar>(i);
 			uchar *src2_data = src2.ptr<uchar>(i);
@@ -354,7 +372,7 @@ void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	if (src1.channels() == 3 && src2.channels() == 1) {
 		cv::Mat src1_grey;
 		convertToGrey(src1, src1_grey);
-		dst.create(src1_grey.rows, src1_grey.cols, CV_8UC1);
+		dst.create(src1_grey.size(), CV_8UC1);
 		for (int i = 0; i < src1_grey.rows; i++) {
 			uchar *src1_data = src1_grey.ptr<uchar>(i);
 			uchar *src2_data = src2.ptr<uchar>(i);
@@ -367,7 +385,7 @@ void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	}
 
 	else if (src1.channels() == 1 && src2.channels() == 1) {
-		dst.create(src1.rows, src1.cols, CV_8UC1);
+		dst.create(src1.size(), CV_8UC1);
 		for (int i = 0; i < src1.rows; i++) {
 			uchar *src1_data = src1.ptr<uchar>(i);
 			uchar *src2_data = src2.ptr<uchar>(i);
@@ -382,6 +400,198 @@ void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 		dst = src1.clone();
 		return;
 	}
+}
+
+void myCVlib::getGaussianKernel(double **gaus, int size, double sigma) {
+	const double pi = 4.0*atan(1.0);
+	int center = size / 2;
+	double sum = 0.0;
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			gaus[i][j] = (1 / (2 * pi*sigma*sigma))*exp(-((i - center)*(i - center) + (j - center)*(j - center)) / (2 * sigma*sigma));
+			sum += gaus[i][j];
+		}
+	}
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			gaus[i][j] /= sum;
+		}
+	}
+}
+
+void myCVlib::gaussianFilter(cv::Mat src, cv::Mat & dst, double**gaus, int size) {
+	dst.create(src.size(), CV_8UC1);
+	double *gausArray = new double[size*size];
+	for (int i = 0; i < size; i++) {
+		for (int j = 0; j < size; j++) {
+			gausArray[i*size + j] = gaus[i][j];
+		}
+	}
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
+			int k = 0;
+			double count = 0.0;
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x<0 ? 0 : x;
+					x = x >= src.rows ? src.rows - 1 : x;
+					y = y<0 ? 0 : y;
+					y = y >= src.cols ? src.cols - 1 : y;
+					count += gausArray[k] * (double)src.at <uchar>(x, y);
+					k++;
+				}
+			}
+			dst.at<uchar>(i, j) = (uchar)count;
+		}
+	}
+	delete[] gausArray;
+}
+void myCVlib::sobelGradDirction(cv::Mat src, cv::Mat &dst_SobelX, cv::Mat &dst_SobelY, double *&directionArray) {
+	directionArray = new double[(src.rows - 1)*(src.cols - 1)];
+	for (int i = 0; i < (src.rows - 1)*(src.cols - 1); i++) {
+			directionArray[i] = 0;
+	}
+	dst_SobelX=cv::Mat::zeros(src.size(), CV_8UC1);
+	dst_SobelY=cv::Mat::zeros(src.size(), CV_8UC1);
+	int k = 0;
+	for (int i = 1; i < src.rows-1; i++) {
+		for (int j = 1; j < src.cols-1; j++) {
+			double gradY = (double)src.at<uchar>(i - 1, j + 1) + 2 * (double)src.at<uchar>(i, j + 1) + (double)src.at<uchar>(i - 1, j + 1) -
+				(double)src.at<uchar>(i - 1, j - 1) - 2 * (double)src.at<uchar>(i, j - 1) - (double)src.at<uchar>(i + 1, j - 1);
+			double gradX = (double)src.at<uchar>(i + 1, j - 1) + 2 * (double)src.at<uchar>(i+1, j) + (double)src.at<uchar>(i + 1, j + 1) -
+				(double)src.at<uchar>(i - 1, j - 1) - 2 * (double)src.at<uchar>(i-1, j) - (double)src.at<uchar>(i-1,j+1);
+			dst_SobelX.at<uchar>(i, j) = (uchar)abs(gradX);
+			dst_SobelY.at<uchar>(i, j) = (uchar)abs(gradY);
+			if (gradX == 0) {
+				gradX = 0.00000001;
+			}
+			directionArray[k] = atan(gradY / gradX)*57.3 + 90;
+			k++;
+		}
+	}
+}
+void myCVlib::amplitude(cv::Mat src_x, cv::Mat src_y, cv::Mat &dst_xy) {
+	dst_xy.create(src_x.size(), CV_8UC1);
+	for (int i = 0; i < dst_xy.rows; i++) {
+		for (int j = 0; j < dst_xy.cols; j++) {
+			dst_xy.at<uchar>(i, j) =(uchar)sqrt((int)src_x.at<uchar>(i, j)*(int)src_x.at<uchar>(i, j) + (int)src_y.at<uchar>(i, j)*(int)src_y.at<uchar>(i, j));
+		}
+	}
+}
+void myCVlib::localMaxValue(cv::Mat src, cv::Mat &dst, double *directionArray) {
+	//imageInput.copyTo(imageOutput);  
+	dst = src.clone();
+	int k = 0;
+	for (int i = 1; i<src.rows - 1; i++)
+	{
+		for (int j = 1; j<src.cols - 1; j++)
+		{
+			int value00 = src.at<uchar>((i - 1), j - 1);
+			int value01 = src.at<uchar>((i - 1), j);
+			int value02 = src.at<uchar>((i - 1), j + 1);
+			int value10 = src.at<uchar>((i), j - 1);
+			int value11 = src.at<uchar>((i), j);
+			int value12 = src.at<uchar>((i), j + 1);
+			int value20 = src.at<uchar>((i + 1), j - 1);
+			int value21 = src.at<uchar>((i + 1), j);
+			int value22 = src.at<uchar>((i + 1), j + 1);
+
+			if (directionArray[k]>0 && directionArray[k] <= 45)
+			{
+				if (value11 <= (value12 + (value02 - value12)*tan(directionArray[i*(src.rows-1) + j])) || (value11 <= (value10 + (value20 - value10)*tan(directionArray[i*(src.rows-1) + j]))))
+				{
+					src.at<uchar>(i, j) = 0;
+				}
+			}
+			if (directionArray[k]>45 && directionArray[k] <= 90)
+
+			{
+				if (value11 <= (value01 + (value02 - value01) / tan(directionArray[i*(src.cols-1) + j])) || value11 <= (value21 + (value20 - value21) / tan(directionArray[i*(src.cols-1) + j])))
+				{
+					src.at<uchar>(i, j) = 0;
+
+				}
+			}
+			if (directionArray[k]>90 && directionArray[k] <= 135)
+			{
+				if (value11 <= (value01 + (value00 - value01) / tan(180 - directionArray[i*(src.cols-1) + j])) || value11 <= (value21 + (value22 - value21) / tan(180 - directionArray[i*(src.cols-1) + j])))
+				{
+					src.at<uchar>(i, j) = 0;
+				}
+			}
+			if (directionArray[k]>135 && directionArray[k] <= 180)
+			{
+				if (value11 <= (value10 + (value00 - value10)*tan(180 - directionArray[i*(src.cols-1) + j])) || value11 <= (value12 + (value22 - value11)*tan(180 - directionArray[i*(src.cols-1) + j])))
+				{
+					src.at<uchar>(i, j) = 0;
+				}
+			}
+			k++;
+		}
+	}
+}
+void myCVlib::doubleThresholdLink(cv::Mat src, cv::Mat &dst, double lowThreshold, double highThreshold) {
+	dst = src.clone();
+	for (int i = 1; i<src.rows - 1; i++)
+	{
+		for (int j = 1; j<src.cols - 1; j++)
+		{
+			if (src.at<uchar>(i, j)>lowThreshold&&src.at<uchar>(i, j)<255)
+			{
+				if (src.at<uchar>(i - 1, j - 1) == 255 || src.at<uchar>(i - 1, j) == 255 || src.at<uchar>(i - 1, j + 1) == 255 ||
+					src.at<uchar>(i, j - 1) == 255 || src.at<uchar>(i, j) == 255 || src.at<uchar>(i, j + 1) == 255 ||
+					src.at<uchar>(i + 1, j - 1) == 255 || src.at<uchar>(i + 1, j) == 255 || src.at<uchar>(i + 1, j + 1) == 255)
+				{
+					dst.at<uchar>(i, j) = 255;
+				}
+				else
+				{
+					dst.at<uchar>(i, j) = 0;
+				}
+			}
+		}
+	}
+}
+
+
+void myCVlib::canny(cv::Mat src, cv::Mat &dst, double lowThreshold,double highThreshold, int aperture_size , int aperture_sigma) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+	dst.create(mat.size(), CV_8UC1);
+	double **gaus = new double*[aperture_size];
+	for (int i = 0; i < aperture_size; i++) {
+		gaus[i] = new double[aperture_size];
+	}
+	//cv::imwrite("canny_grey.jpg",mat);
+	getGaussianKernel(gaus, aperture_size, aperture_sigma);
+	cv::Mat mat_gaus;
+	gaussianFilter(mat, mat_gaus, gaus, aperture_size);
+	cv::Mat sobel_X, sobel_Y;
+	double *directionArray;
+	sobelGradDirction(mat_gaus, sobel_X, sobel_Y, directionArray);
+	cv::Mat sobel_XY;
+	amplitude(sobel_X, sobel_Y, sobel_XY);
+	cv::Mat localMax;
+	localMaxValue(sobel_XY, localMax, directionArray);
+	cv::Mat threshold;
+	doubleThreshold(localMax, threshold, lowThreshold, highThreshold);
+	doubleThresholdLink(threshold,dst, lowThreshold, highThreshold);
+	//dst = sobel_X.clone();
+	//dst = sobel_Y.clone();
+	for (int i = 0; i < aperture_size; i++) {
+		delete[] gaus[i];
+	}
+	delete[] gaus;
+	delete[] directionArray;
 }
 
 
