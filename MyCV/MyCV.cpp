@@ -20,14 +20,14 @@ MyCV::MyCV(QWidget *parent)
 	connect(imageShowLabel, SIGNAL(showRGB(QString)), this, SLOT(showMessage(QString)));
 	connect(imageShowLabel, SIGNAL(imageChanged(void)), this, SLOT(changeImageStatus()));
 	adjustHSLWindow = new HSLSliderWidget(this);
-	adjustHSLWindow->resize(600,250);
+	adjustHSLWindow->resize(600, 250);
 	adjustHSLWindow->setWindowTitle(code->toUnicode("色相 饱和度 亮度调节"));
 	//adjustHSLWindow->show();
 	binarizationWindow = new BinarizationSliderWidget(this);
 	binarizationWindow->resize(600, 200);
 	binarizationWindow->setWindowTitle(code->toUnicode("双阈值二值化调节"));
 	//QMenu
-    file_menu = new QMenu(code->toUnicode("文件"));
+	file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
 	menuBar()->addMenu(file_menu);
 	menuBar()->addMenu(edit_menu);
@@ -35,7 +35,7 @@ MyCV::MyCV(QWidget *parent)
 
 
 	//QAction
-	QAction* action_open = new QAction(QIcon("png/folder_open_icon&32.png"),code->toUnicode("打开文件"));
+	QAction* action_open = new QAction(QIcon("png/folder_open_icon&32.png"), code->toUnicode("打开文件"));
 	file_menu->addAction(action_open);
 	ui.mainToolBar->addAction(action_open);
 	connect(action_open, SIGNAL(triggered(bool)), this, SLOT(on_open_action_selected()));
@@ -50,13 +50,13 @@ MyCV::MyCV(QWidget *parent)
 	QAction* action_adjustHSL = new QAction(code->toUnicode("色相 饱和度 亮度调节"));
 	edit_menu->addAction(action_adjustHSL);
 	connect(action_adjustHSL, SIGNAL(triggered(bool)), this, SLOT(showadjustHSLWindow()));
-	connect(adjustHSLWindow, SIGNAL(applyHSL(double, double, double)), this, SLOT(changeImageHSL(double,double,double)));
+	connect(adjustHSLWindow, SIGNAL(applyHSL(double, double, double)), this, SLOT(changeImageHSL(double, double, double)));
 
 	//QAction
 	QAction* action_binarization = new QAction(code->toUnicode("双阈值二值化调节"));
 	edit_menu->addAction(action_binarization);
 	connect(action_binarization, SIGNAL(triggered(bool)), this, SLOT(showbinarizationWindow()));
-	connect(binarizationWindow, SIGNAL(applyBinarization(int, int)), this, SLOT(changeBinarization(int,int)));
+	connect(binarizationWindow, SIGNAL(applyBinarization(int, int)), this, SLOT(changeBinarization(int, int)));
 
 	//QMenu
 	QMenu* splitRGB_menu = new QMenu(code->toUnicode("三通道分离"));
@@ -73,18 +73,31 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_splitG, SIGNAL(triggered(bool)), this, SLOT(on_splitG_action_selected()));
 	connect(action_splitB, SIGNAL(triggered(bool)), this, SLOT(on_splitB_action_selected()));
 	connect(action_mergeRGB, SIGNAL(triggered(bool)), this, SLOT(on_mergeRGB_action_selected()));
-	
-	
+
+
 	//QMenu
 	QAction *action_converetToGrey = new QAction(code->toUnicode("转换灰度图"));
 	edit_menu->addAction(action_converetToGrey);
 	connect(action_converetToGrey, SIGNAL(triggered(bool)), this, SLOT(on_converetToGrey_action_selected()));
-	
-	
+
+
 	//QMenu
 	QAction *action_OTSU = new QAction(code->toUnicode("OTSU二值化"));
 	edit_menu->addAction(action_OTSU);
 	connect(action_OTSU, SIGNAL(triggered(bool)), this, SLOT(on_OTSU_action_selected()));
+
+	//QMenu
+	QMenu* arithop_menu = new QMenu(code->toUnicode("图像代数操作"));
+	edit_menu->addMenu(arithop_menu);
+	QAction* action_add = new QAction(code->toUnicode("图像相加"));
+	QAction* action_subtract = new QAction(code->toUnicode("图像相减"));
+	QAction* action_multiple = new QAction(code->toUnicode("图像相乘（二值图像）"));
+	arithop_menu->addAction(action_add);
+	arithop_menu->addAction(action_subtract);
+	arithop_menu->addAction(action_multiple);
+	connect(action_add, SIGNAL(triggered(bool)), this, SLOT(on_add_action_selected()));
+	connect(action_subtract, SIGNAL(triggered(bool)), this, SLOT(on_subtract_action_selected()));
+	connect(action_multiple, SIGNAL(triggered(bool)), this, SLOT(on_multiple_action_selected()));
 }
 
 
@@ -115,9 +128,10 @@ void MyCV::on_open_action_selected()
 	QString filename = QFileDialog::getOpenFileName(this,
 		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
 	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
-	src_image = cv::imread(name);
+	src_image = cv::imread(name, cv::IMREAD_UNCHANGED);
 	//cv::imshow(name.c_str(), image);
 	//cv::waitKey();
+	int channels = src_image.channels();
 	if (!src_image.data)
 	{
 		return;
@@ -241,4 +255,60 @@ void  MyCV::changeBinarization(int minPixel, int maxPixel) {
 	cv::Mat dst;
 	myCVlib::doubleBinarization(src_image, dst, minPixel, maxPixel);
 	imageShowLabel->displayMat(dst);
+}
+
+void MyCV::on_add_action_selected() {
+	cv::Mat src1 = src_image;
+	cv::Mat src2;
+	cv::Mat dst;
+	QString filename = QFileDialog::getOpenFileName(this,
+		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
+	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
+	src2 = cv::imread(name,cv::IMREAD_UNCHANGED);
+	int channels = src2.channels();
+	//cv::imshow(name.c_str(), image);
+	//cv::waitKey();
+	if (!src2.data)
+	{
+		return;
+	}
+	myCVlib::op_add(src1, src2, dst);
+	imageShowLabel->displayMat(dst);
+}
+
+void MyCV::on_subtract_action_selected() {
+	cv::Mat src1 = src_image;
+	cv::Mat src2;
+	cv::Mat dst;
+	QString filename = QFileDialog::getOpenFileName(this,
+		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
+	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
+	src2 = cv::imread(name,cv::IMREAD_UNCHANGED);
+	//cv::imshow(name.c_str(), image);
+	//cv::waitKey();
+	if (!src2.data)
+	{
+		return;
+	}
+	myCVlib::op_subtract(src1, src2, dst);
+	imageShowLabel->displayMat(dst);
+
+}
+void MyCV::on_multiple_action_selected() {
+	cv::Mat src1 = src_image;
+	cv::Mat src2;
+	cv::Mat dst;
+	QString filename = QFileDialog::getOpenFileName(this,
+		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
+	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
+	src2 = cv::imread(name,cv::IMREAD_UNCHANGED);
+	//cv::imshow(name.c_str(), image);
+	//cv::waitKey();
+	if (!src2.data)
+	{
+		return;
+	}
+	myCVlib::op_multiple(src1, src2, dst);
+	imageShowLabel->displayMat(dst);
+
 }

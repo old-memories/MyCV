@@ -16,4 +16,7 @@ namespace myCVlib {
 	void changeImageHSL(cv::Mat& mat, double deltaH, double deltaS, double deltaL);
 	void OTSU(cv::Mat src, cv::Mat& dst);
 	void  doubleBinarization(cv::Mat src, cv::Mat&dst,int minPixel, int maxPixel);
+	void op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
 }

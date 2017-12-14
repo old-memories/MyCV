@@ -30,6 +30,9 @@ private slots:
 	void on_splitG_action_selected();
 	void on_splitB_action_selected();
 	void on_mergeRGB_action_selected();
+	void on_add_action_selected();
+	void on_subtract_action_selected();
+	void on_multiple_action_selected();
 	void on_converetToGrey_action_selected();
 	void on_OTSU_action_selected();
 	void showMessage(QString str);

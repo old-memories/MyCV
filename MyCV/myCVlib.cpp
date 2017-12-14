@@ -271,4 +271,117 @@ void  myCVlib::doubleBinarization(cv::Mat src, cv::Mat&dst, int minPixel, int ma
 	}
 }
 
+void myCVlib::op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
+	if (src1.rows != src2.rows || src1.cols != src2.cols) {
+		dst = src1.clone();
+		return;
+	}
+	if (src1.channels() == 3 && src2.channels() == 1) {
+		cv::Mat src1_grey;
+		convertToGrey(src1, src1_grey);
+		dst.create(src1_grey.rows, src1_grey.cols, CV_8UC1);
+		for (int i = 0; i < src1_grey.rows; i++) {
+			uchar *src1_data = src1_grey.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1_grey.cols*src1_grey.channels(); j += 1) {
+				dst_data[j] = clamp((double)src1_data[j] +(double) src2_data[j]);
+			}
+		}
+		return;
+	}
+
+	else if (src1.channels() == 1 && src2.channels() == 1) {
+		dst.create(src1.rows, src1.cols, CV_8UC1);
+		for (int i = 0; i < src1.rows; i++) {
+			uchar *src1_data = src1.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1.cols*src1.channels(); j += 1) {
+				dst_data[j] = clamp((double)src1_data[j] +(double) src2_data[j]);
+			}
+		}
+		return;
+	}
+	else {
+		dst = src1.clone();
+		return;
+	}
+}
+void myCVlib::op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
+	if (src1.rows != src2.rows || src1.cols != src2.cols) {
+		dst = src1.clone();
+		return;
+	}
+	if (src1.channels() ==3 && src2.channels()==1) {
+		cv::Mat src1_grey;
+		convertToGrey(src1, src1_grey);
+		dst.create(src1_grey.rows, src1_grey.cols, CV_8UC1);
+		for (int i = 0; i < src1_grey.rows; i++) {
+			uchar *src1_data = src1_grey.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1_grey.cols*src1_grey.channels(); j += 1) {
+				dst_data[j] = clamp((double)src1_data[j] - (double)src2_data[j]);
+			}
+		}
+		return;
+	}
+
+	else if (src1.channels() == 1 && src2.channels() == 1) {
+		dst.create(src1.rows, src1.cols, CV_8UC1);
+		for (int i = 0; i < src1.rows; i++) {
+			uchar *src1_data = src1.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1.cols*src1.channels(); j += 1) {
+				dst_data[j] = clamp((double)src1_data[j] -(double) src2_data[j]);
+			}
+		}
+		return;
+	}
+	else {
+		dst = src1.clone();
+		return;
+	}
+	
+}
+void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
+	if (src1.rows != src2.rows || src1.cols != src2.cols) {
+		dst = src1.clone();
+		return;
+	}
+	if (src1.channels() == 3 && src2.channels() == 1) {
+		cv::Mat src1_grey;
+		convertToGrey(src1, src1_grey);
+		dst.create(src1_grey.rows, src1_grey.cols, CV_8UC1);
+		for (int i = 0; i < src1_grey.rows; i++) {
+			uchar *src1_data = src1_grey.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1_grey.cols*src1_grey.channels(); j += 1) {
+				dst_data[j] = clamp((double)src1_data[j] * (double)src2_data[j]);
+			}
+		}
+		return;
+	}
+
+	else if (src1.channels() == 1 && src2.channels() == 1) {
+		dst.create(src1.rows, src1.cols, CV_8UC1);
+		for (int i = 0; i < src1.rows; i++) {
+			uchar *src1_data = src1.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1.cols*src1.channels(); j += 1) {
+				dst_data[j] = clamp((double)src1_data[j] * (double)src2_data[j]);
+			}
+		}
+		return;
+	}
+	else {
+		dst = src1.clone();
+		return;
+	}
+}
+
 
