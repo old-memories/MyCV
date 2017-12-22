@@ -26,6 +26,11 @@ MyCV::MyCV(QWidget *parent)
 	binarizationWindow = new BinarizationSliderWidget(this);
 	binarizationWindow->resize(600, 200);
 	binarizationWindow->setWindowTitle(code->toUnicode("双阈值二值化调节"));
+
+	cannyWindow = new CannySliderWidget(this);
+	cannyWindow->resize(600, 350);
+	cannyWindow->setWindowTitle(code->toUnicode("Canny检测"));
+
 	//QMenu
 	file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
@@ -84,6 +89,7 @@ MyCV::MyCV(QWidget *parent)
 	QAction *action_canny = new QAction(code->toUnicode("Canny边缘检测"));
 	edit_menu->addAction(action_canny);
 	connect(action_canny, SIGNAL(triggered(bool)), this, SLOT(on_canny_action_selected()));
+	connect(cannyWindow, SIGNAL(applyCanny(double, double, int, int)), this, SLOT(canny(double, double, int,int)));
 
 
 	//QMenu
@@ -319,8 +325,13 @@ void MyCV::on_multiple_action_selected() {
 }
 
 void MyCV::on_canny_action_selected() {
+	cannyWindow->initCanny(40.0,90.0,7,1);
+	cannyWindow->show();
+}
+
+void MyCV::canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma) {
 	cv::Mat mat;
-	myCVlib::canny(src_image, mat,40,90);
+	myCVlib::canny(src_image, mat, lowThreshold,highThreshold,aperture_size,aperture_sigma);
 	src_image = mat.clone();
 	imageShowLabel->displayMat(src_image);
 }

@@ -5,6 +5,7 @@
 #include "HSLSliderWidget.h"
 #include "ImageShowLabel.h"
 #include "BinarizationSliderWidget.h"
+#include "CannySliderWidget.h"
 
 class MyCV : public QMainWindow
 {
@@ -19,6 +20,7 @@ private:
 	ImageShowLabel *imageShowLabel;
 	HSLSliderWidget *adjustHSLWindow;
 	BinarizationSliderWidget *binarizationWindow;
+	CannySliderWidget *cannyWindow;
 	QMenu* file_menu;
 	QMenu* edit_menu;
 	cv::Mat src_image;
@@ -43,4 +45,6 @@ private slots:
 	void changeBinarization(int minPixel, int maxPixel);
 	void on_saveas_action_selected();
 	void on_canny_action_selected();
+	void canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma);
+
 };

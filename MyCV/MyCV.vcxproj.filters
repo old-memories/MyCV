@@ -72,6 +72,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_BinarizationSliderWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_CannySliderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_CannySliderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CannySliderWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyCV.h">
@@ -90,6 +99,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="BinarizationSliderWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="CannySliderWidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

@@ -571,7 +571,6 @@ void myCVlib::canny(cv::Mat src, cv::Mat &dst, double lowThreshold,double highTh
 	for (int i = 0; i < aperture_size; i++) {
 		gaus[i] = new double[aperture_size];
 	}
-	//cv::imwrite("canny_grey.jpg",mat);
 	getGaussianKernel(gaus, aperture_size, aperture_sigma);
 	cv::Mat mat_gaus;
 	gaussianFilter(mat, mat_gaus, gaus, aperture_size);
