@@ -28,4 +28,5 @@ namespace myCVlib {
 	void localMaxValue(cv::Mat src, cv::Mat &dst, double *directionArray);
 	void doubleThresholdLink(cv::Mat src, cv::Mat &dst, double lowThreshold, double highThreshold);
 	void canny(cv::Mat src, cv::Mat &dst, double lowThreshold, double highThreshold, int aperture_size = 7, int aperture_sigma = 1);
+	void gausFilter(cv::Mat src, cv::Mat &dst, int  aperture_size = 7, int aperture_sigma = 1);
 	}

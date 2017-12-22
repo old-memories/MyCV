@@ -593,4 +593,27 @@ void myCVlib::canny(cv::Mat src, cv::Mat &dst, double lowThreshold,double highTh
 	delete[] directionArray;
 }
 
+void myCVlib::gausFilter(cv::Mat src, cv::Mat &dst, int  aperture_size, int aperture_sigma){
+cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+	double **gaus = new double*[aperture_size];
+	for (int i = 0; i < aperture_size; i++) {
+		gaus[i] = new double[aperture_size];
+	}
+	getGaussianKernel(gaus, aperture_size, aperture_sigma);
+	dst.create(mat.size(), CV_8UC1);
+	gaussianFilter(mat, dst, gaus, aperture_size);
+	for (int i = 0; i < aperture_size; i++) {
+		delete[] gaus[i];
+	}
+	delete[] gaus;
+}
+
 

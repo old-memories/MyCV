@@ -6,6 +6,7 @@
 #include "ImageShowLabel.h"
 #include "BinarizationSliderWidget.h"
 #include "CannySliderWidget.h"
+#include "GausFilterSliderWidget.h"
 
 class MyCV : public QMainWindow
 {
@@ -20,6 +21,7 @@ private:
 	ImageShowLabel *imageShowLabel;
 	HSLSliderWidget *adjustHSLWindow;
 	BinarizationSliderWidget *binarizationWindow;
+	GausFilterSliderWidget *gausFilterWindow;
 	CannySliderWidget *cannyWindow;
 	QMenu* file_menu;
 	QMenu* edit_menu;
@@ -36,6 +38,9 @@ private slots:
 	void on_subtract_action_selected();
 	void on_multiple_action_selected();
 	void on_converetToGrey_action_selected();
+	void on_avgFilter_action_selected();
+	void on_midFilter_action_selected();
+	void on_gausFilter_action_selected();
 	void on_OTSU_action_selected();
 	void showMessage(QString str);
 	void changeImageStatus();
@@ -46,5 +51,5 @@ private slots:
 	void on_saveas_action_selected();
 	void on_canny_action_selected();
 	void canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma);
-
+	void useGausFilter(int aperture_size, int aperture_sigma);
 };

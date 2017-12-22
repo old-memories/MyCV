@@ -27,6 +27,10 @@ MyCV::MyCV(QWidget *parent)
 	binarizationWindow->resize(600, 200);
 	binarizationWindow->setWindowTitle(code->toUnicode("双阈值二值化调节"));
 
+	gausFilterWindow = new GausFilterSliderWidget(this);
+	gausFilterWindow->resize(600, 200);
+	gausFilterWindow->setWindowTitle(code->toUnicode("Gauss平滑滤波"));
+
 	cannyWindow = new CannySliderWidget(this);
 	cannyWindow->resize(600, 350);
 	cannyWindow->setWindowTitle(code->toUnicode("Canny检测"));
@@ -62,6 +66,8 @@ MyCV::MyCV(QWidget *parent)
 	edit_menu->addAction(action_binarization);
 	connect(action_binarization, SIGNAL(triggered(bool)), this, SLOT(showbinarizationWindow()));
 	connect(binarizationWindow, SIGNAL(applyBinarization(int, int)), this, SLOT(changeBinarization(int, int)));
+
+
 
 	//QMenu
 	QMenu* splitRGB_menu = new QMenu(code->toUnicode("三通道分离"));
@@ -109,6 +115,20 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_add, SIGNAL(triggered(bool)), this, SLOT(on_add_action_selected()));
 	connect(action_subtract, SIGNAL(triggered(bool)), this, SLOT(on_subtract_action_selected()));
 	connect(action_multiple, SIGNAL(triggered(bool)), this, SLOT(on_multiple_action_selected()));
+
+	//QMenu
+	QMenu* filter_menu = new QMenu(code->toUnicode("平滑滤波"));
+	edit_menu->addMenu(filter_menu);
+	QAction* action_avgFilter = new QAction(code->toUnicode("均值"));
+	QAction* action_midFilter = new QAction(code->toUnicode("中值"));
+	QAction* action_gausFilter = new QAction(code->toUnicode("高斯"));
+	filter_menu->addAction(action_avgFilter);
+	filter_menu->addAction(action_midFilter);
+	filter_menu->addAction(action_gausFilter);
+	connect(action_avgFilter, SIGNAL(triggered(bool)), this, SLOT(on_avgFilter_action_selected()));
+	connect(action_midFilter, SIGNAL(triggered(bool)), this, SLOT(on_midFilter_action_selected()));
+	connect(action_gausFilter, SIGNAL(triggered(bool)), this, SLOT(on_gausFilter_action_selected()));
+	connect(gausFilterWindow, SIGNAL(applyGausFilter(int, int)), this, SLOT(useGausFilter(int, int)));
 }
 
 
@@ -332,7 +352,24 @@ void MyCV::on_canny_action_selected() {
 void MyCV::canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma) {
 	cv::Mat mat;
 	myCVlib::canny(src_image, mat, lowThreshold,highThreshold,aperture_size,aperture_sigma);
-	src_image = mat.clone();
-	imageShowLabel->displayMat(src_image);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_avgFilter_action_selected() {
+
+}
+void MyCV::on_midFilter_action_selected() {
+
+}
+void MyCV::on_gausFilter_action_selected() {
+	gausFilterWindow->show();
+}
+
+void MyCV::useGausFilter(int aperture_size, int aperture_sigma) {
+	cv::Mat mat;
+	myCVlib::gausFilter(src_image, mat, aperture_size, aperture_sigma);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
 }
 
