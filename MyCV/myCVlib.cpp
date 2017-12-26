@@ -616,4 +616,194 @@ cv::Mat mat;
 	delete[] gaus;
 }
 
+void myCVlib::avgFilter(cv::Mat src, cv::Mat &dst, int size) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+
+	dst.create(mat.size(), CV_8UC1);
+
+	for (int i = 0; i < mat.rows; i++) {
+		for (int j = 0; j < mat.cols; j++) {
+			int k = 0;
+			double count = 0.0;
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x < 0 ? 0 : x;
+					x = x >= mat.rows ? mat.rows - 1 : x;
+					y = y < 0 ? 0 : y;
+					y = y >= mat.cols ? mat.cols - 1 : y;
+					count += 1.0/(size*size) * (double)mat.at <uchar>(x, y);
+					k++;
+				}
+			}
+			dst.at<uchar>(i, j) = (uchar)count;
+		}
+	}
+}
+void myCVlib::midFilter(cv::Mat src, cv::Mat &dst, int size) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+	dst.create(mat.size(), CV_8UC1);
+
+	for (int i = 0; i < mat.rows; i++) {
+		for (int j = 0; j < mat.cols; j++) {
+			int k = 0;
+			std::vector<double> count;
+			count.clear();
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x < 0 ? 0 : x;
+					x = x >= mat.rows ? mat.rows - 1 : x;
+					y = y < 0 ? 0 : y;
+					y = y >= mat.cols ? mat.cols - 1 : y;
+					//count = std::max(count,(double)src.at <uchar>(x, y));
+					count.push_back( (double)mat.at <uchar>(x, y));
+					k++;
+				}
+			}
+			std::sort(count.begin(), count.end());
+			double mid = count[size*size/2];
+			dst.at<uchar>(i, j) = (uchar)mid;
+		}
+	}
+}
+void myCVlib::sobelDector(cv::Mat src, cv::Mat &dst) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+	dst.create(mat.size(), CV_8UC1);
+	cv::Mat sobel_X, sobel_Y;
+	double *directionArray;
+	sobelGradDirction(mat, sobel_X, sobel_Y, directionArray);
+	amplitude(sobel_X, sobel_Y, dst);
+	delete[] directionArray;
+}
+
+void myCVlib::laplaceDector(cv::Mat src, cv::Mat &dst) {
+	cv::Mat mat;
+	gausFilter(src, mat,11, 5);
+
+	dst.create(mat.size(), CV_8UC1);
+	int size = 3;
+	double *laplaceArray = new double[size*size];
+	laplaceArray[0] = 0;
+	laplaceArray[1] = 1;
+	laplaceArray[2] = 0;
+	laplaceArray[3] = 1;
+	laplaceArray[4] = -4;
+	laplaceArray[5] = 1;
+	laplaceArray[6] = 0;
+	laplaceArray[7] = 1;
+	laplaceArray[8] = 0;
+
+	for (int i = 0; i < mat.rows; i++) {
+		for (int j = 0; j < mat.cols; j++) {
+			int k = 0;
+			double count = 0.0;
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x<0 ? 0 : x;
+					x = x >= mat.rows ? mat.rows - 1 : x;
+					y = y<0 ? 0 : y;
+					y = y >= mat.cols ? mat.cols - 1 : y;
+					count += laplaceArray[k] * (double)mat.at <uchar>(x, y);
+					k++;
+				}
+			}
+			
+			
+			
+			
+			
+			dst.at<uchar>(i, j) = (uchar)count;
+		}
+	}
+	delete[] laplaceArray;
+
+
+}
+
+void myCVlib::nn_resize(cv::Mat src, cv::Mat &dst, float ratio) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+	dst.create(int(mat.rows*ratio),int(mat.cols*ratio), CV_8UC1);
+	for (int i = 0; i < int(mat.rows*ratio); i++) {
+		for (int j = 0; j < int(mat.cols*ratio); j++) {
+			
+			dst.at<uchar>(i, j) = mat.at<uchar>(int(i*1.0f / ratio), int(j*1.0 / ratio));
+		}
+	}
+
+}
+void myCVlib::linear_resize(cv::Mat src, cv::Mat &dst, float ratio) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+	dst.create(int(mat.rows *ratio), int(mat.cols *ratio), CV_8UC1);
+	for (int i = 0; i < int(mat.rows *ratio); i++) {
+		for (int j = 0; j < int(mat.cols *ratio); j++) {
+			float x0 = i*1.0f / ratio;
+			float y0 = j*1.0f / ratio;
+
+			int x1 = int(x0);
+			int x2 = (x1 + 1)>=mat.rows ? x1 : x1+1;
+			int y1 = int(y0);
+			int y2 = (y1 + 1)>=mat.cols ? y1 : y1 + 1;
+			float fx1 = x0 - x1;
+			float fx2 = 1.0f - fx1;
+			float fy1 = y0 - y1;
+			float fy2 = 1.0f - fy1;
+
+			float s1 = fx1*fy1;
+			float s2 = fx2*fy1;
+			float s3 = fx2*fy2;
+			float s4 = fx1*fy2;
+			dst.at<uchar>(i, j) = uchar(float(mat.at<uchar>(x2, y2)*s1) 
+													+ float(mat.at<uchar>(x1, y2)*s2) 
+													+ float(mat.at<uchar>(x1, y1)*s3) 
+													+ float(mat.at<uchar>(x2, y1)*s4));
+		}
+	}
+}
+
+
 

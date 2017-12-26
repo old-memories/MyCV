@@ -29,4 +29,10 @@ namespace myCVlib {
 	void doubleThresholdLink(cv::Mat src, cv::Mat &dst, double lowThreshold, double highThreshold);
 	void canny(cv::Mat src, cv::Mat &dst, double lowThreshold, double highThreshold, int aperture_size = 7, int aperture_sigma = 1);
 	void gausFilter(cv::Mat src, cv::Mat &dst, int  aperture_size = 7, int aperture_sigma = 1);
+	void avgFilter(cv::Mat src, cv::Mat &dst,int size);
+	void midFilter(cv::Mat src, cv::Mat &dst,int size);
+	void sobelDector(cv::Mat src, cv::Mat &dst);
+	void laplaceDector(cv::Mat src, cv::Mat &dst);
+	void nn_resize(cv::Mat src, cv::Mat &dst, float ratio);
+	void linear_resize(cv::Mat src, cv::Mat &dst, float ratio);
 	}

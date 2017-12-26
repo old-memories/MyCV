@@ -50,6 +50,12 @@ private slots:
 	void changeBinarization(int minPixel, int maxPixel);
 	void on_saveas_action_selected();
 	void on_canny_action_selected();
+	void on_sobel_action_selected();
+	void on_laplace_action_selected();
+	void on_nn_mul2_action_selected();
+	void on_nn_div2_action_selected();
+	void on_linear_mul2_action_selected();
+	void on_linear_div2_action_selected();
 	void canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma);
 	void useGausFilter(int aperture_size, int aperture_sigma);
 };

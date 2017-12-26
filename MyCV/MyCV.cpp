@@ -91,10 +91,19 @@ MyCV::MyCV(QWidget *parent)
 	edit_menu->addAction(action_converetToGrey);
 	connect(action_converetToGrey, SIGNAL(triggered(bool)), this, SLOT(on_converetToGrey_action_selected()));
 
+
 	//QMenu
+	QMenu *edgeDetect_menu = new QMenu(code->toUnicode("±ßÔµ¼ì²â"));
+	edit_menu->addMenu(edgeDetect_menu);
 	QAction *action_canny = new QAction(code->toUnicode("Canny±ßÔµ¼ì²â"));
-	edit_menu->addAction(action_canny);
+	QAction *action_sobel = new QAction(code->toUnicode("Sobel±ßÔµ¼ì²â"));
+	QAction *action_laplace = new QAction(code->toUnicode("Laplace±ßÔµ¼ì²â"));
+	edgeDetect_menu->addAction(action_canny);\
+	edgeDetect_menu->addAction(action_sobel);
+	edgeDetect_menu->addAction(action_laplace);
 	connect(action_canny, SIGNAL(triggered(bool)), this, SLOT(on_canny_action_selected()));
+	connect(action_sobel, SIGNAL(triggered(bool)), this, SLOT(on_sobel_action_selected()));
+	connect(action_laplace, SIGNAL(triggered(bool)), this, SLOT(on_laplace_action_selected()));
 	connect(cannyWindow, SIGNAL(applyCanny(double, double, int, int)), this, SLOT(canny(double, double, int,int)));
 
 
@@ -116,6 +125,20 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_subtract, SIGNAL(triggered(bool)), this, SLOT(on_subtract_action_selected()));
 	connect(action_multiple, SIGNAL(triggered(bool)), this, SLOT(on_multiple_action_selected()));
 
+	QMenu* gemoop_menu = new QMenu(code->toUnicode("Í¼Ïñ¼¸ºÎ²Ù×÷"));
+	edit_menu->addMenu(gemoop_menu);
+	QAction* action_nn_mul2 = new QAction(code->toUnicode("×î½üÁÚ·Å´ó"));
+	QAction* action_nn_div2 = new QAction(code->toUnicode("×î½üÁÚËõÐ¡"));
+	QAction* action_linear_mul2 = new QAction(code->toUnicode("Ë«ÏßÐÔ·Å´ó"));
+	QAction* action_linear_div2 = new QAction(code->toUnicode("Ë«ÏßÐÔËõÐ¡"));
+	gemoop_menu->addAction(action_nn_mul2);
+	gemoop_menu->addAction(action_nn_div2);
+	gemoop_menu->addAction(action_linear_mul2);
+	gemoop_menu->addAction(action_linear_div2);
+	connect(action_nn_mul2, SIGNAL(triggered(bool)), this, SLOT(on_nn_mul2_action_selected()));
+	connect(action_nn_div2, SIGNAL(triggered(bool)), this, SLOT(on_nn_div2_action_selected()));
+	connect(action_linear_mul2, SIGNAL(triggered(bool)), this, SLOT(on_linear_mul2_action_selected()));
+	connect(action_linear_div2, SIGNAL(triggered(bool)), this, SLOT(on_linear_div2_action_selected()));
 	//QMenu
 	QMenu* filter_menu = new QMenu(code->toUnicode("Æ½»¬ÂË²¨"));
 	edit_menu->addMenu(filter_menu);
@@ -349,6 +372,21 @@ void MyCV::on_canny_action_selected() {
 	cannyWindow->show();
 }
 
+
+void MyCV::on_sobel_action_selected() {
+	cv::Mat mat;
+	myCVlib::sobelDector(src_image, mat);
+	imageShowLabel->displayMat(mat);
+
+
+}void MyCV::on_laplace_action_selected() {
+	cv::Mat mat;
+	myCVlib::laplaceDector(src_image, mat);
+	imageShowLabel->displayMat(mat);
+
+
+}
+
 void MyCV::canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma) {
 	cv::Mat mat;
 	myCVlib::canny(src_image, mat, lowThreshold,highThreshold,aperture_size,aperture_sigma);
@@ -357,10 +395,16 @@ void MyCV::canny(double lowThreshold, double highThreshold, int aperture_size, i
 }
 
 void MyCV::on_avgFilter_action_selected() {
+	cv::Mat mat;
+	myCVlib::avgFilter(src_image, mat, 7);	
+	imageShowLabel->displayMat(mat);
+
 
 }
 void MyCV::on_midFilter_action_selected() {
-
+	cv::Mat mat;
+	myCVlib::midFilter(src_image, mat,7);
+	imageShowLabel->displayMat(mat);
 }
 void MyCV::on_gausFilter_action_selected() {
 	gausFilterWindow->show();
@@ -373,3 +417,27 @@ void MyCV::useGausFilter(int aperture_size, int aperture_sigma) {
 	imageShowLabel->displayMat(mat);
 }
 
+void MyCV::on_nn_mul2_action_selected() {
+	cv::Mat mat;
+	myCVlib::nn_resize(src_image, mat, 2);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_nn_div2_action_selected() {
+	cv::Mat mat;
+	myCVlib::nn_resize(src_image, mat, 0.5);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_linear_mul2_action_selected() {
+	cv::Mat mat;
+	myCVlib::linear_resize(src_image, mat, 2);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_linear_div2_action_selected() {
+	cv::Mat mat;
+	myCVlib::linear_resize(src_image, mat, 0.5);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
