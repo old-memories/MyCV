@@ -8,6 +8,7 @@
 #include "CannySliderWidget.h"
 #include "GausFilterSliderWidget.h"
 #include "HoughSliderWidget.h"
+#include "SetSEWidget.h"
 
 class MyCV : public QMainWindow
 {
@@ -28,10 +29,12 @@ private:
 	CannySliderWidget *cannyWindow;
 	HoughSliderWidget *houghLineWindow;
 	HoughSliderWidget *houghCircleWindow;
+	SetSEWidget *setSEWindow;
 
 	QMenu* file_menu;
 	QMenu* edit_menu;
 	cv::Mat src_image;
+	std::vector<char> kernal;
 	void setEnable_when_displayMat();
 	enum ImageStatus {NO_IMAGE,IMAGE_REMAINED,IMAGE_CHANGED} imageStatus;
 private slots:
@@ -49,6 +52,10 @@ private slots:
 	void on_midFilter_action_selected();
 	void on_gausFilter_action_selected();
 	void on_OTSU_action_selected();
+	void on_setSE_action_selected();
+	void setSE(std::vector<char>kernal);
+	void on_bin_dilate_action_selected();
+	void on_bin_erode_action_selected();
 	void showMessage(QString str);
 	void changeImageStatus();
 	void showadjustHSLWindow();

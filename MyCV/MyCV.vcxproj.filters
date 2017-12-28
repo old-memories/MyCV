@@ -99,6 +99,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_HoughSliderWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="SetSEWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_SetSEWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_SetSEWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyCV.h">
@@ -126,6 +135,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="HoughSliderWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="SetSEWidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

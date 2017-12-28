@@ -46,4 +46,6 @@ namespace myCVlib {
 	void linear_adjustContrast(cv::Mat src, cv::Mat &dst, int *p1, int *p2);
 	void log_adjustContrast(cv::Mat src, cv::Mat &dst, int ground);
 	void pow_adjustContrast(cv::Mat src, cv::Mat &dst, int index);
+	void bin_erode(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
+	void bin_dilate(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
 }

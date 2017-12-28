@@ -48,6 +48,15 @@ MyCV::MyCV(QWidget *parent)
 	houghCircleWindow->resize(600, 600);
 	houghCircleWindow->setWindowTitle(code->toUnicode("Hough Circle"));
 
+	for (int i = 0; i < 25; i++) {
+		kernal.push_back(0);
+	}
+	setSEWindow = new SetSEWidget(this);
+	setSEWindow->resize(800, 900);
+	setSEWindow->setWindowTitle(code->toUnicode("SE"));
+	connect(setSEWindow, SIGNAL(applySE(std::vector<char>)), this, SLOT(setSE(std::vector<char>)));
+
+
 	//QMenu
 	file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
@@ -157,6 +166,20 @@ MyCV::MyCV(QWidget *parent)
 	QAction *action_OTSU = new QAction(code->toUnicode("OTSU二值化"));
 	edit_menu->addAction(action_OTSU);
 	connect(action_OTSU, SIGNAL(triggered(bool)), this, SLOT(on_OTSU_action_selected()));
+
+	//QMenu
+	QMenu* bin_menu = new QMenu(code->toUnicode("二值图像形态学"));
+	edit_menu->addMenu(bin_menu);
+	QAction* action_setSE = new QAction(code->toUnicode("设置卷积核"));
+	QAction* action_bin_dilate = new QAction(code->toUnicode("二值膨胀"));
+	QAction* action_bin_erode = new QAction(code->toUnicode("二值腐蚀"));
+	bin_menu->addAction(action_bin_dilate);
+	bin_menu->addAction(action_bin_erode);
+	bin_menu->addAction(action_setSE);
+	connect(action_bin_dilate, SIGNAL(triggered(bool)), this, SLOT(on_bin_dilate_action_selected()));
+	connect(action_bin_erode, SIGNAL(triggered(bool)), this, SLOT(on_bin_erode_action_selected()));
+	connect(action_setSE, SIGNAL(triggered(bool)), this, SLOT(on_setSE_action_selected()));
+
 
 	//QMenu
 	QMenu* arithop_menu = new QMenu(code->toUnicode("图像代数操作"));
@@ -572,5 +595,42 @@ void MyCV::on_powAdjust_action_selected() {
 	cv::Mat mat;
 	int index = 2;
 	myCVlib::pow_adjustContrast(src_image, mat,index);
+	imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_setSE_action_selected() {
+	setSEWindow->show();
+}
+
+void  MyCV::setSE(std::vector<char>se) {
+	for (int i = 0; i < kernal.size();i++) {
+		kernal[i] = se[i];
+	}
+}
+
+
+void MyCV::on_bin_dilate_action_selected() {
+	cv::Mat mat;
+	myCVlib::bin_dilate(src_image, mat, kernal, 5);
+	imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_bin_erode_action_selected() {
+	cv::Mat mat;
+	/*
+	char **kernal = new char*[3];
+	for (int i = 0; i < 3; i++) {
+		kernal[i] = new char[3];
+	}
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			kernal[i][j] = 1;
+		}
+	}
+	*/
+	
+
+	myCVlib::bin_erode(src_image, mat, kernal,5);
 	imageShowLabel->displayMat(mat);
 }

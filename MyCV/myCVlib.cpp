@@ -1299,3 +1299,60 @@ void myCVlib::pow_adjustContrast(cv::Mat src, cv::Mat &dst, int index) {
 	}
 }
 
+void myCVlib::bin_erode(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size) {
+	dst.create(src.size(), CV_8UC1);
+	char *kernalArray = new char[size*size];
+	for (int i = 0; i < size*size; i++) {
+		kernalArray[i] = kernal[i];
+	}
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
+			int k = 0;
+			char tag = 1;
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x<0 ? 0 : x;
+					x = x >= src.rows ? src.rows - 1 : x;
+					y = y<0 ? 0 : y;
+					y = y >= src.cols ? src.cols - 1 : y;
+					char current = src.at <uchar>(x, y) == 0 ? 1 : 0;
+					tag = tag & (kernalArray[k] & current);
+					k++;
+				}
+			}
+			dst.at<uchar>(i, j) = (uchar)(tag==1 ? 0 : 255);
+		}
+	}
+	delete[] kernalArray;
+}
+void myCVlib::bin_dilate(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size) {
+	dst.create(src.size(), CV_8UC1);
+	char *kernalArray = new char[size*size];
+	for (int i = 0; i < size*size; i++) {
+			kernalArray[i] = kernal[i];
+	}
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
+			int k = 0;
+			char tag = 0;
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x<0 ? 0 : x;
+					x = x >= src.rows ? src.rows - 1 : x;
+					y = y<0 ? 0 : y;
+					y = y >= src.cols ? src.cols - 1 : y;
+					char current = src.at <uchar>(x, y) == 0 ? 1 : 0;
+					tag = tag | (kernalArray[k] & current);
+					k++;
+				}
+			}
+			dst.at<uchar>(i, j) = (uchar)(tag == 1 ? 0 : 255);
+		}
+	}
+	delete[] kernalArray;
+}
+
