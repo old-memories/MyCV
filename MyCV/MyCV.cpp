@@ -49,10 +49,10 @@ MyCV::MyCV(QWidget *parent)
 	houghCircleWindow->setWindowTitle(code->toUnicode("Hough Circle"));
 
 	for (int i = 0; i < 25; i++) {
-		kernal.push_back(0);
+		kernal.push_back(1);
 	}
 	setSEWindow = new SetSEWidget(this);
-	setSEWindow->resize(800, 900);
+	setSEWindow->resize(300, 300);
 	setSEWindow->setWindowTitle(code->toUnicode("SE"));
 	connect(setSEWindow, SIGNAL(applySE(std::vector<char>)), this, SLOT(setSE(std::vector<char>)));
 
@@ -173,11 +173,19 @@ MyCV::MyCV(QWidget *parent)
 	QAction* action_setSE = new QAction(code->toUnicode("设置卷积核"));
 	QAction* action_bin_dilate = new QAction(code->toUnicode("二值膨胀"));
 	QAction* action_bin_erode = new QAction(code->toUnicode("二值腐蚀"));
+	QAction* action_bin_open = new QAction(code->toUnicode("二值开"));
+	QAction* action_bin_close = new QAction(code->toUnicode("二值闭"));
+	
+	bin_menu->addAction(action_setSE);
 	bin_menu->addAction(action_bin_dilate);
 	bin_menu->addAction(action_bin_erode);
-	bin_menu->addAction(action_setSE);
+	bin_menu->addAction(action_bin_open);
+	bin_menu->addAction(action_bin_close);
+
 	connect(action_bin_dilate, SIGNAL(triggered(bool)), this, SLOT(on_bin_dilate_action_selected()));
 	connect(action_bin_erode, SIGNAL(triggered(bool)), this, SLOT(on_bin_erode_action_selected()));
+	connect(action_bin_open, SIGNAL(triggered(bool)), this, SLOT(on_bin_open_action_selected()));
+	connect(action_bin_close, SIGNAL(triggered(bool)), this, SLOT(on_bin_close_action_selected()));
 	connect(action_setSE, SIGNAL(triggered(bool)), this, SLOT(on_setSE_action_selected()));
 
 
@@ -632,5 +640,17 @@ void MyCV::on_bin_erode_action_selected() {
 	
 
 	myCVlib::bin_erode(src_image, mat, kernal,5);
+	imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_bin_open_action_selected() {
+	cv::Mat mat;
+	myCVlib::bin_open(src_image, mat, kernal, 5);
+	imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_bin_close_action_selected() {
+	cv::Mat mat;
+	myCVlib::bin_close(src_image, mat, kernal, 5);
 	imageShowLabel->displayMat(mat);
 }

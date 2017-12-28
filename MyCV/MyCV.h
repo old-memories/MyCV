@@ -56,6 +56,8 @@ private slots:
 	void setSE(std::vector<char>kernal);
 	void on_bin_dilate_action_selected();
 	void on_bin_erode_action_selected();
+	void on_bin_open_action_selected();
+	void on_bin_close_action_selected();
 	void showMessage(QString str);
 	void changeImageStatus();
 	void showadjustHSLWindow();

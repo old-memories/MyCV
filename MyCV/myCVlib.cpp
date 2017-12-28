@@ -1318,7 +1318,8 @@ void myCVlib::bin_erode(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int 
 					y = y<0 ? 0 : y;
 					y = y >= src.cols ? src.cols - 1 : y;
 					char current = src.at <uchar>(x, y) == 0 ? 1 : 0;
-					tag = tag & (kernalArray[k] & current);
+					if(kernalArray[k]==1)
+						tag = tag & current;
 					k++;
 				}
 			}
@@ -1346,7 +1347,8 @@ void myCVlib::bin_dilate(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int
 					y = y<0 ? 0 : y;
 					y = y >= src.cols ? src.cols - 1 : y;
 					char current = src.at <uchar>(x, y) == 0 ? 1 : 0;
-					tag = tag | (kernalArray[k] & current);
+					if (kernalArray[k] == 1)
+						tag = tag |  current;
 					k++;
 				}
 			}
@@ -1354,5 +1356,19 @@ void myCVlib::bin_dilate(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int
 		}
 	}
 	delete[] kernalArray;
+}
+void myCVlib::bin_open(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size) {
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	bin_erode(src, mat, kernal, size);
+	bin_dilate(mat, dst, kernal, size);
+}
+void myCVlib::bin_close(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size) {
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	bin_dilate(src, mat, kernal, size);
+	bin_erode(mat, dst, kernal, size);
 }
 
