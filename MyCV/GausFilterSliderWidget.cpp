@@ -14,9 +14,9 @@ GausFilterSliderWidget::GausFilterSliderWidget(QWidget *parent)
 	label_aperture_size = new QLabel(QString(code->toUnicode("卷积核大小")));
 	label_aperture_sigma = new QLabel(QString(code->toUnicode("卷积核标准差")));
 	slider_aperture_size->setMinimum(3);
-	slider_aperture_size->setMaximum(10);
+	slider_aperture_size->setMaximum(15);
 	slider_aperture_sigma->setMinimum(1);
-	slider_aperture_sigma->setMaximum(10);
+	slider_aperture_sigma->setMaximum(9);
 	slider_aperture_size->setValue(7);
 	slider_aperture_sigma->setValue(1);
 	value_aperture_size->setText(QString::number(7));

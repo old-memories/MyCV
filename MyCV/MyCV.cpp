@@ -177,14 +177,18 @@ MyCV::MyCV(QWidget *parent)
 	QAction* action_nn_div2 = new QAction(code->toUnicode("最近邻缩小"));
 	QAction* action_linear_mul2 = new QAction(code->toUnicode("双线性放大"));
 	QAction* action_linear_div2 = new QAction(code->toUnicode("双线性缩小"));
+	QAction* action_nn_rotate45 = new QAction(code->toUnicode("最近邻旋转"));
 	gemoop_menu->addAction(action_nn_mul2);
 	gemoop_menu->addAction(action_nn_div2);
 	gemoop_menu->addAction(action_linear_mul2);
 	gemoop_menu->addAction(action_linear_div2);
+	gemoop_menu->addAction(action_nn_rotate45);
 	connect(action_nn_mul2, SIGNAL(triggered(bool)), this, SLOT(on_nn_mul2_action_selected()));
 	connect(action_nn_div2, SIGNAL(triggered(bool)), this, SLOT(on_nn_div2_action_selected()));
 	connect(action_linear_mul2, SIGNAL(triggered(bool)), this, SLOT(on_linear_mul2_action_selected()));
 	connect(action_linear_div2, SIGNAL(triggered(bool)), this, SLOT(on_linear_div2_action_selected()));
+	connect(action_nn_rotate45, SIGNAL(triggered(bool)), this, SLOT(on_nn_rotate45_action_selected()));
+
 	//QMenu
 	QMenu* filter_menu = new QMenu(code->toUnicode("平滑滤波"));
 	edit_menu->addMenu(filter_menu);
@@ -510,6 +514,17 @@ void MyCV::on_linear_div2_action_selected() {
 	//src_image = mat.clone();
 	imageShowLabel->displayMat(mat);
 }
+
+void MyCV::on_nn_rotate45_action_selected() {
+	cv::Mat mat;
+	myCVlib::nn_rotate(src_image, mat,45);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+
+}
+
+
+
 void MyCV::on_houghLine_action_selected() {
 	houghLineWindow->initHough(200,1, 20, 100, 60, 0, 0);
 	houghLineWindow->show();
@@ -548,8 +563,14 @@ void MyCV::on_linearAdjust_action_selected() {
 	imageShowLabel->displayMat(mat);
 }
 void MyCV::on_logAdjust_action_selected() {
-
+	cv::Mat mat;
+	int ground = 10;
+	myCVlib::log_adjustContrast(src_image, mat, ground);
+	imageShowLabel->displayMat(mat);
 }
 void MyCV::on_powAdjust_action_selected() {
-
+	cv::Mat mat;
+	int index = 2;
+	myCVlib::pow_adjustContrast(src_image, mat,index);
+	imageShowLabel->displayMat(mat);
 }

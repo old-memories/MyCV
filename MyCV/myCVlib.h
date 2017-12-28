@@ -35,6 +35,7 @@ namespace myCVlib {
 	void laplaceDector(cv::Mat src, cv::Mat &dst);
 	void nn_resize(cv::Mat src, cv::Mat &dst, float ratio);
 	void linear_resize(cv::Mat src, cv::Mat &dst, float ratio);
+	void nn_rotate(cv::Mat src, cv::Mat &dst, float angle);
 	void createHoughLine(cv::Mat src, int threshold, std::vector<std::pair<float,float>> &lines, float rho, float theta);
 	void houghLine(cv::Mat src, int threshold, cv::Mat &dst);
 	void createhoughCircle(cv::Mat src, cv::Mat sobel_x, cv::Mat sobel_y, std::vector<std::pair<std::pair<float, float>, float>> &circles, double min_dist, int canny_threshold, int threshold, int minRadius, int maxRadius);
@@ -43,4 +44,6 @@ namespace myCVlib {
 	void getHistImg(int* hist, cv::Mat &dst, int histSize, int *ranges);
 	void equalizeHist(cv::Mat src, cv::Mat &dst,int histSize,int *ranges);
 	void linear_adjustContrast(cv::Mat src, cv::Mat &dst, int *p1, int *p2);
+	void log_adjustContrast(cv::Mat src, cv::Mat &dst, int ground);
+	void pow_adjustContrast(cv::Mat src, cv::Mat &dst, int index);
 }

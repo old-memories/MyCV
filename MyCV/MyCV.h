@@ -63,6 +63,7 @@ private slots:
 	void on_nn_div2_action_selected();
 	void on_linear_mul2_action_selected();
 	void on_linear_div2_action_selected();
+	void on_nn_rotate45_action_selected();
 	void on_houghLine_action_selected();
 	void on_houghCircle_action_selected();
 	void on_equalizeHist_action_selected();

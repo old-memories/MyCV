@@ -805,6 +805,85 @@ void myCVlib::linear_resize(cv::Mat src, cv::Mat &dst, float ratio) {
 	}
 }
 
+static int Max_four(int a, int b, int c, int d)
+{
+	int max = 0;
+	max = a>b ? a : b;
+	max = max>c ? max : c;
+	max = max>d ? max : d;
+	return max;
+}
+
+static int Min_four(int a, int b, int c, int d)
+{
+	int min = 0;
+	min = a<b ? a : b;
+	min = min<c ? min : c;
+	min = min<d ? min : d;
+	return min;
+}
+
+void myCVlib::nn_rotate(cv::Mat src, cv::Mat &dst, float angle) {
+	cv::Mat mat;
+	if (src.channels() == 3) {
+		convertToGrey(src, mat);
+	}
+	else if (src.channels() == 1) {
+		mat = src.clone();
+	}
+	else
+		return;
+
+
+	float rad = angle*(CV_PI / 180);
+	int nWidth = mat.cols;
+	int nHeight = mat.rows;
+
+	int srcX1 = 0;
+	int srcY1 = 0;
+	int srcX2 = nWidth - 1;
+	int srcY2 = 0;//nHeight/2;  
+	int srcX3 = nWidth - 1;
+	int srcY3 = -(nHeight - 1);
+	int srcX4 = 0;
+	int srcY4 = -(nHeight - 1);
+
+	int detX1 = (int)((cos(rad)*srcX1 + sin(rad)*srcY1) + 0.5);
+	int dstY1 = (int)((-sin(rad)*srcX1 + cos(rad)*srcY1) + 0.5);
+	int dstX2 = (int)((cos(rad)*srcX2 + sin(rad)*srcY2) + 0.5);
+	int dstY2 = (int)((-sin(rad)*srcX2 + cos(rad)*srcY2) + 0.5);
+	int dstX3 = (int)((cos(rad)*srcX3 + sin(rad)*srcY3) + 0.5);
+	int dstY3 = (int)((-sin(rad)*srcX3 + cos(rad)*srcY3) + 0.5);
+	int dstX4 = (int)((cos(rad)*srcX4 + sin(rad)*srcY4) + 0.5);
+	int dstY4 = (int)((-sin(rad)*srcX4 + cos(rad)*srcY4) + 0.5);
+
+	int max_dstX = Max_four(detX1, dstX2, dstX3, dstX4);
+	int max_dstY = Min_four(dstY1, dstY2, dstY3, dstY4);
+
+	int dstWidth = std::max(abs(detX1 - dstX3), abs(dstX2 - dstX4)) + 1;
+	int dstHeight = std::max(abs(dstY1 - dstY3), abs(dstY2 - dstY4)) + 1;
+
+	dst.create(dstHeight, dstWidth,CV_8UC1);
+
+	float varX = (float)(-(dstWidth - abs(max_dstX))*cos(rad) - (dstHeight - abs(max_dstY))*sin(rad));
+	float varY = (float)((dstWidth - abs(max_dstX))*sin(rad) - (dstHeight - abs(max_dstY))*cos(rad));
+
+	for (int i = 0; i<dstHeight; i++)
+		for (int j = 0; j < dstWidth; j++)
+		{
+			int x = (int)(cos(rad)*j + sin(rad)*i + varX);
+			int y = (int)(-sin(rad)*j + cos(rad)*i + varY);
+
+			if (x > (nWidth - 1) || x<0 || y>(nHeight - 1) || y < 0)
+
+				dst.at<uchar>(i, j) = 0;
+
+			else {
+
+				dst.at<uchar>(i, j) = mat.at<uchar>(y, x);
+			}
+		}
+}
 
 static void sort(int* seq, int length, int* data){
 	int i, j, t1, t;
@@ -1189,4 +1268,34 @@ void myCVlib::linear_adjustContrast(cv::Mat src, cv::Mat &dst, int *p1, int *p2)
 	}
 }
 
+void myCVlib::log_adjustContrast(cv::Mat src, cv::Mat &dst, int ground) {
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+
+	for (int i = 0; i < mat.rows; i++) {
+		uchar *src_data = mat.ptr<uchar>(i);
+		uchar *dst_data = dst.ptr<uchar>(i);
+		for (int j = 0; j < mat.cols; j++) {
+			double src_grey = double(src_data[j]) / 255.0;
+			dst_data[j] = clamp(cvRound(log(1+ src_grey*ground) / log(1+ground)*255.0));
+		}
+	}
+}
+void myCVlib::pow_adjustContrast(cv::Mat src, cv::Mat &dst, int index) {
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+
+	for (int i = 0; i < mat.rows; i++) {
+		uchar *src_data = mat.ptr<uchar>(i);
+		uchar *dst_data = dst.ptr<uchar>(i);
+		for (int j = 0; j < mat.cols; j++) {
+			double src_grey = double(src_data[j]) / 255.0;
+			dst_data[j] = clamp(cvRound(pow(src_grey, index)*255.0));
+		}
+	}
+}
 
