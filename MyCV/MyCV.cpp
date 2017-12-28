@@ -19,6 +19,12 @@ MyCV::MyCV(QWidget *parent)
 	imageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
 	connect(imageShowLabel, SIGNAL(showRGB(QString)), this, SLOT(showMessage(QString)));
 	connect(imageShowLabel, SIGNAL(imageChanged(void)), this, SLOT(changeImageStatus()));
+
+	histImageShowWindow = new QWidget(this,Qt::Window);
+	histImageShowLabel = new QLabel(histImageShowWindow);
+	histImageShowLabel->setGeometry(QRect(0, 0, 0, 0));
+	histImageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
+
 	adjustHSLWindow = new HSLSliderWidget(this);
 	adjustHSLWindow->resize(600, 250);
 	adjustHSLWindow->setWindowTitle(code->toUnicode("色相 饱和度 亮度调节"));
@@ -34,6 +40,13 @@ MyCV::MyCV(QWidget *parent)
 	cannyWindow = new CannySliderWidget(this);
 	cannyWindow->resize(600, 350);
 	cannyWindow->setWindowTitle(code->toUnicode("Canny检测"));
+
+	houghLineWindow = new HoughSliderWidget(this);
+	houghLineWindow->resize(600, 600);
+	houghLineWindow->setWindowTitle(code->toUnicode("Hough Line"));
+	houghCircleWindow = new HoughSliderWidget(this);
+	houghCircleWindow->resize(600, 600);
+	houghCircleWindow->setWindowTitle(code->toUnicode("Hough Circle"));
 
 	//QMenu
 	file_menu = new QMenu(code->toUnicode("文件"));
@@ -91,6 +104,27 @@ MyCV::MyCV(QWidget *parent)
 	edit_menu->addAction(action_converetToGrey);
 	connect(action_converetToGrey, SIGNAL(triggered(bool)), this, SLOT(on_converetToGrey_action_selected()));
 
+	// QMenu
+	QAction *action_showHist = new QAction(code->toUnicode("灰度直方图"));
+	edit_menu->addAction(action_showHist);
+	connect(action_showHist, SIGNAL(triggered(bool)), this, SLOT(on_showHist_action_selected()));
+
+	//QMenu
+	QMenu *adjustContrast_menu = new QMenu(code->toUnicode("对比度调节"));
+	edit_menu->addMenu(adjustContrast_menu);
+	QAction *action_equalizeHist = new QAction(code->toUnicode("直方图均衡化"));
+	QAction *action_linearAdjust = new QAction(code->toUnicode("分段线性"));
+	QAction *action_logAdjust = new QAction(code->toUnicode("对数"));
+	QAction *action_powAdjust = new QAction(code->toUnicode("指数"));
+	adjustContrast_menu->addAction(action_equalizeHist);
+	adjustContrast_menu->addAction(action_linearAdjust);
+	adjustContrast_menu->addAction(action_logAdjust);
+	adjustContrast_menu->addAction(action_powAdjust);
+	connect(action_equalizeHist, SIGNAL(triggered(bool)), this, SLOT(on_equalizeHist_action_selected()));
+	connect(action_linearAdjust, SIGNAL(triggered(bool)), this, SLOT(on_linearAdjust_action_selected()));
+	connect(action_logAdjust, SIGNAL(triggered(bool)), this, SLOT(on_logAdjust_action_selected()));
+	connect(action_powAdjust, SIGNAL(triggered(bool)), this, SLOT(on_powAdjust_action_selected()));
+
 
 	//QMenu
 	QMenu *edgeDetect_menu = new QMenu(code->toUnicode("边缘检测"));
@@ -98,13 +132,25 @@ MyCV::MyCV(QWidget *parent)
 	QAction *action_canny = new QAction(code->toUnicode("Canny边缘检测"));
 	QAction *action_sobel = new QAction(code->toUnicode("Sobel边缘检测"));
 	QAction *action_laplace = new QAction(code->toUnicode("Laplace边缘检测"));
-	edgeDetect_menu->addAction(action_canny);\
+	edgeDetect_menu->addAction(action_canny);
 	edgeDetect_menu->addAction(action_sobel);
 	edgeDetect_menu->addAction(action_laplace);
 	connect(action_canny, SIGNAL(triggered(bool)), this, SLOT(on_canny_action_selected()));
 	connect(action_sobel, SIGNAL(triggered(bool)), this, SLOT(on_sobel_action_selected()));
 	connect(action_laplace, SIGNAL(triggered(bool)), this, SLOT(on_laplace_action_selected()));
 	connect(cannyWindow, SIGNAL(applyCanny(double, double, int, int)), this, SLOT(canny(double, double, int,int)));
+
+	//QMenu
+	QMenu *hough_menu = new QMenu(code->toUnicode("Hough"));
+	edit_menu->addMenu(hough_menu);
+	QAction *action_houghLine = new QAction(code->toUnicode("直线"));
+	QAction *action_houghCircle = new QAction(code->toUnicode("圆"));
+	hough_menu->addAction(action_houghLine);
+	hough_menu->addAction(action_houghCircle);
+	connect(action_houghLine, SIGNAL(triggered(bool)), this, SLOT(on_houghLine_action_selected()));
+	connect(action_houghCircle, SIGNAL(triggered(bool)), this, SLOT(on_houghCircle_action_selected()));
+	connect(houghLineWindow, SIGNAL(applyHough(double, double, double, double, double, int, int)), this, SLOT(HoughLine(double, double, double, double, double, int, int)));
+	connect(houghCircleWindow, SIGNAL(applyHough(double, double, double, double, double, int, int)), this, SLOT(HoughCircle(double, double, double, double, double, int, int)));
 
 
 	//QMenu
@@ -262,6 +308,29 @@ void MyCV::on_converetToGrey_action_selected() {
 	src_image = mat.clone();
 	imageShowLabel->displayMat(src_image);
 }
+
+void MyCV::on_showHist_action_selected() {
+	cv::Mat mat;
+	int ranges[2] = { 0,255 };
+	int *hist = new int[256];
+	memset(hist, 0, sizeof(int)*256);
+	myCVlib::calcHist(src_image, hist, 256, ranges);
+	myCVlib::getHistImg(hist, mat,256,ranges);
+	delete[] hist;
+	//imageShowLabel->displayMat(mat);
+	
+	QImage Qimg = QImage((const unsigned char*)(mat.data), mat.cols, mat.rows, mat.cols*mat.channels(), QImage::Format_Grayscale8);
+	QPixmap qPixap = QPixmap::fromImage(Qimg);
+	histImageShowWindow->resize(qPixap.size());
+	histImageShowLabel->resize(qPixap.size());
+	//qPixap.scaled(labelimage->size(), Qt::KeepAspectRatio);
+	histImageShowLabel->setPixmap(qPixap);
+	//labelimage->resize(labelimage->pixmap()->size());
+	histImageShowWindow->show();
+	
+	
+}
+
 
 void MyCV::on_OTSU_action_selected() {
 	cv::Mat mat;
@@ -440,4 +509,47 @@ void MyCV::on_linear_div2_action_selected() {
 	myCVlib::linear_resize(src_image, mat, 0.5);
 	//src_image = mat.clone();
 	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_houghLine_action_selected() {
+	houghLineWindow->initHough(200,1, 20, 100, 60, 0, 0);
+	houghLineWindow->show();
+}
+void MyCV::on_houghCircle_action_selected() {
+	houghCircleWindow->initHough(200, 1, 20, 100, 60, 0, 0);
+	houghCircleWindow->show();
+}
+
+void MyCV::HoughCircle(double line_threshold, double dp, double min_dist, double canny_threshold, double circle_threshold, int minRadius, int maxRadius) {
+	cv::Mat mat;
+	mat = src_image.clone();
+	myCVlib::houghCircle(src_image, mat,dp,min_dist,canny_threshold, circle_threshold,minRadius,maxRadius);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::HoughLine(double line_threshold, double dp, double min_dist, double canny_threshold, double circle_threshold, int minRadius, int maxRadius){
+	cv::Mat mat;
+	mat = src_image.clone();
+	myCVlib::houghLine(src_image, line_threshold, mat );
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_equalizeHist_action_selected() {
+	cv::Mat mat;
+	int ranges[2] = { 0,255 };
+	myCVlib::equalizeHist(src_image, mat, 256, ranges);
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_linearAdjust_action_selected() {
+	cv::Mat mat;
+	int p1[2] = { 100,50 };
+	int p2[2] = { 150,200 };
+	myCVlib::linear_adjustContrast(src_image, mat, p1, p2);
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_logAdjust_action_selected() {
+
+}
+void MyCV::on_powAdjust_action_selected() {
+
 }

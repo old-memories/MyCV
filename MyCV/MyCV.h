@@ -7,6 +7,7 @@
 #include "BinarizationSliderWidget.h"
 #include "CannySliderWidget.h"
 #include "GausFilterSliderWidget.h"
+#include "HoughSliderWidget.h"
 
 class MyCV : public QMainWindow
 {
@@ -19,10 +20,15 @@ private:
 	Ui::MyCVClass ui;
 	QTextCodec *code;
 	ImageShowLabel *imageShowLabel;
+	QWidget *histImageShowWindow;
+	QLabel *histImageShowLabel;
 	HSLSliderWidget *adjustHSLWindow;
 	BinarizationSliderWidget *binarizationWindow;
 	GausFilterSliderWidget *gausFilterWindow;
 	CannySliderWidget *cannyWindow;
+	HoughSliderWidget *houghLineWindow;
+	HoughSliderWidget *houghCircleWindow;
+
 	QMenu* file_menu;
 	QMenu* edit_menu;
 	cv::Mat src_image;
@@ -38,6 +44,7 @@ private slots:
 	void on_subtract_action_selected();
 	void on_multiple_action_selected();
 	void on_converetToGrey_action_selected();
+	void on_showHist_action_selected();
 	void on_avgFilter_action_selected();
 	void on_midFilter_action_selected();
 	void on_gausFilter_action_selected();
@@ -56,6 +63,14 @@ private slots:
 	void on_nn_div2_action_selected();
 	void on_linear_mul2_action_selected();
 	void on_linear_div2_action_selected();
+	void on_houghLine_action_selected();
+	void on_houghCircle_action_selected();
+	void on_equalizeHist_action_selected();
+	void on_linearAdjust_action_selected();
+	void on_logAdjust_action_selected();
+	void on_powAdjust_action_selected();
 	void canny(double lowThreshold, double highThreshold, int aperture_size, int aperture_sigma);
 	void useGausFilter(int aperture_size, int aperture_sigma);
+	void HoughLine(double line_threshold, double dp, double min_dist, double canny_threshold, double circle_threshold, int minRadius, int maxRadius);
+	void HoughCircle(double line_threshold, double dp, double min_dist, double canny_threshold, double circle_threshold, int minRadius, int maxRadius);
 };

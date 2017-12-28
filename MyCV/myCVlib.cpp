@@ -164,7 +164,7 @@
 		 g = sumG / total;
 		 b = sumB / total;
 	 }
-	 uchar myCVlib::clamp(double value) {
+	 static uchar clamp(double value) {
 		 return (uchar)value> 255 ? 255 : (value < 0 ? 0 : value);
 	 }
 	 void myCVlib::changeImageRGB(cv::Mat& mat, double deltaR, double deltaG, double deltaB) {
@@ -403,7 +403,7 @@ void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 }
 
 void myCVlib::getGaussianKernel(double **gaus, int size, double sigma) {
-	const double pi = 4.0*atan(1.0);
+	const double pi = CV_PI;
 	int center = size / 2;
 	double sum = 0.0;
 	for (int i = 0; i < size; i++) {
@@ -720,31 +720,31 @@ void myCVlib::laplaceDector(cv::Mat src, cv::Mat &dst) {
 	laplaceArray[7] = 1;
 	laplaceArray[8] = 0;
 
-	for (int i = 0; i < mat.rows; i++) {
-		for (int j = 0; j < mat.cols; j++) {
-			int k = 0;
-			double count = 0.0;
-			for (int m = -size / 2; m <= size / 2; m++) {
-				for (int n = -size / 2; n <= size / 2; n++) {
-					int x = i + m;
-					int y = j + n;
-					x = x<0 ? 0 : x;
-					x = x >= mat.rows ? mat.rows - 1 : x;
-					y = y<0 ? 0 : y;
-					y = y >= mat.cols ? mat.cols - 1 : y;
-					count += laplaceArray[k] * (double)mat.at <uchar>(x, y);
-					k++;
-				}
+for (int i = 0; i < mat.rows; i++) {
+	for (int j = 0; j < mat.cols; j++) {
+		int k = 0;
+		double count = 0.0;
+		for (int m = -size / 2; m <= size / 2; m++) {
+			for (int n = -size / 2; n <= size / 2; n++) {
+				int x = i + m;
+				int y = j + n;
+				x = x < 0 ? 0 : x;
+				x = x >= mat.rows ? mat.rows - 1 : x;
+				y = y < 0 ? 0 : y;
+				y = y >= mat.cols ? mat.cols - 1 : y;
+				count += laplaceArray[k] * (double)mat.at <uchar>(x, y);
+				k++;
 			}
-			
-			
-			
-			
-			
-			dst.at<uchar>(i, j) = (uchar)count;
 		}
+
+
+
+
+
+		dst.at<uchar>(i, j) = (uchar)count;
 	}
-	delete[] laplaceArray;
+}
+delete[] laplaceArray;
 
 
 }
@@ -759,10 +759,10 @@ void myCVlib::nn_resize(cv::Mat src, cv::Mat &dst, float ratio) {
 	}
 	else
 		return;
-	dst.create(int(mat.rows*ratio),int(mat.cols*ratio), CV_8UC1);
+	dst.create(int(mat.rows*ratio), int(mat.cols*ratio), CV_8UC1);
 	for (int i = 0; i < int(mat.rows*ratio); i++) {
 		for (int j = 0; j < int(mat.cols*ratio); j++) {
-			
+
 			dst.at<uchar>(i, j) = mat.at<uchar>(int(i*1.0f / ratio), int(j*1.0 / ratio));
 		}
 	}
@@ -785,9 +785,9 @@ void myCVlib::linear_resize(cv::Mat src, cv::Mat &dst, float ratio) {
 			float y0 = j*1.0f / ratio;
 
 			int x1 = int(x0);
-			int x2 = (x1 + 1)>=mat.rows ? x1 : x1+1;
+			int x2 = (x1 + 1) >= mat.rows ? x1 : x1 + 1;
 			int y1 = int(y0);
-			int y2 = (y1 + 1)>=mat.cols ? y1 : y1 + 1;
+			int y2 = (y1 + 1) >= mat.cols ? y1 : y1 + 1;
 			float fx1 = x0 - x1;
 			float fx2 = 1.0f - fx1;
 			float fy1 = y0 - y1;
@@ -797,13 +797,396 @@ void myCVlib::linear_resize(cv::Mat src, cv::Mat &dst, float ratio) {
 			float s2 = fx2*fy1;
 			float s3 = fx2*fy2;
 			float s4 = fx1*fy2;
-			dst.at<uchar>(i, j) = uchar(float(mat.at<uchar>(x2, y2)*s1) 
-													+ float(mat.at<uchar>(x1, y2)*s2) 
-													+ float(mat.at<uchar>(x1, y1)*s3) 
-													+ float(mat.at<uchar>(x2, y1)*s4));
+			dst.at<uchar>(i, j) = uchar(float(mat.at<uchar>(x2, y2)*s1)
+				+ float(mat.at<uchar>(x1, y2)*s2)
+				+ float(mat.at<uchar>(x1, y1)*s3)
+				+ float(mat.at<uchar>(x2, y1)*s4));
 		}
 	}
 }
 
+
+static void sort(int* seq, int length, int* data){
+	int i, j, t1, t;
+	for (j = 0; j<length; j++)
+		for (i = 0; i<length - 1 - j; i++)
+			if (data[i]<data[i + 1])
+			{
+				t = data[i];
+				data[i] = data[i + 1];
+				data[i + 1] = t;
+
+
+				t1 = seq[i];
+				seq[i] = seq[i + 1];
+				seq[i + 1] = t1;
+			}
+}
+
+void myCVlib::createHoughLine(cv::Mat src, int threshold, std::vector<std::pair<float, float>> &lines, float rho, float theta) {
+	int numangle = int(CV_PI / theta);
+	int numrho = int(((src.cols + src.rows) * 2 + 1) / rho);
+	int total = 0;
+	int *accum = new int[(numangle + 2)*(numrho + 2)];
+	memset(accum, 0, sizeof(accum[0])*(numangle + 2)*(numrho + 2));
+	int *detectd_lines = new int[numangle*numrho];
+	int *sort_buf = new int[numangle*numrho];
+	float *tabSin = new float[numangle];
+	float *tabCos = new float[numangle];
+	float ang = 0;
+	for (int n = 0; n < numangle; ang += theta, n++)
+	{
+		tabSin[n] = (float)(sin((double)ang) * 1.0f / rho);
+		tabCos[n] = (float)(cos((double)ang) * 1.0f / rho);
+	}
+
+	for (int i = 0; i < src.rows; i++){
+		for (int j = 0; j < src.cols; j++) {
+			if (src.at<uchar>(i, j) != 0) {
+				for (int n = 0; n < numangle; n++) {
+					int r = int(j*tabCos[n] + i*tabSin[n]);
+					r += (numrho - 1) / 2;
+					accum[(n + 1)*(numrho + 2) + r + 1]++;
+				}
+			}
+		}
+	}
+
+	for (int r = 0; r < numrho; r++) {
+		for (int n = 0; n < numangle; n++) {
+			int base = (n + 1) * (numrho + 2) + r + 1;
+			if (accum[base] > threshold &&
+				accum[base] > accum[base - 1] && accum[base] >= accum[base + 1] &&
+				accum[base] > accum[base - numrho - 2] && accum[base] >= accum[base + numrho + 2]) {
+				detectd_lines[total] = accum[base];
+				sort_buf[total] = base;
+				total++;
+			}
+				
+		}
+	}
+
+	sort(sort_buf, total, detectd_lines);
+
+	float scale = 1.0f / (numrho + 2);
+	for (int i = 0; i < total; i++) {
+		int idx = sort_buf[i];
+		int n = int(idx*scale) - 1;
+		int r = idx - (n + 1)*(numrho + 2) - 1;
+		float line_rho = (r - (numrho - 1)*0.5f) * rho;
+		float line_angle = n * theta;
+		lines.push_back(std::pair<float, float>(line_rho, line_angle));
+	}
+
+	delete[] accum;
+	delete[] detectd_lines;
+	delete[] sort_buf;
+	delete[] tabSin;
+	delete[] tabCos;
+}
+
+void myCVlib::houghLine(cv::Mat src, int threshold, cv::Mat &dst) {
+	cv::Mat mat;
+
+	mat.create(src.size(), CV_8UC1);
+	//dst.create(src.size(), CV_8UC1);
+	canny(src, mat, 50, 200, 3);
+	std::vector<std::pair<float, float>> lines;
+	createHoughLine(mat, threshold, lines, 1, CV_PI / 180);
+	for (size_t i = 0; i < lines.size(); i++)
+	{
+		float rho = lines[i].first, theta = lines[i].second;
+		cv::Point pt1, pt2;
+		double a = cos(theta), b = sin(theta);
+		double x0 = a*rho, y0 = b*rho;
+		pt1.x = cvRound(x0 + 1000 * (-b));
+		pt1.y = cvRound(y0 + 1000 * (a));
+		pt2.x = cvRound(x0 - 1000 * (-b));
+		pt2.y = cvRound(y0 - 1000 * (a));
+		cv::line(dst, pt1, pt2, cv::Scalar(0, 0, 150), 3, CV_AA);
+	}
+}
+
+void myCVlib::createhoughCircle(cv::Mat src, cv::Mat sobel_x, cv::Mat sobel_y, std::vector<std::pair<std::pair<float, float>, float>> &circles, double min_dist, int canny_threshold, int threshold, int minRadius, int maxRadius) {
+	const int SHIFT = 10, ONE = 1 << SHIFT;
+	int *accum = new int[(src.rows + 2)*(src.cols + 2)];
+	int *detected_centers = new int[src.rows *src.cols];
+	memset(accum, 0, sizeof(accum[0])*(src.rows + 2)*(src.cols + 2));
+	std::vector<std::pair<int, int>>nz;
+	std::vector<int> centers;
+	for (int y = 0; y < src.rows; y++) {
+		for (int x = 0; x < src.cols; x++) {
+			float vx = sobel_x.at<short>(y, x);
+			float vy = sobel_y.at<short>(y, x);
+			if (!src.at<uchar>(y, x) || (vx == 0 && vy == 0))
+				continue;
+			float mag = sqrt(vx*vx + vy*vy);
+			int sx = int(vx*ONE / mag);
+			int sy = int(vy*ONE / mag);
+
+			int x0 = int(x*ONE);
+			int y0 = int(y*ONE);
+
+			for (int k1 = 0; k1 < 2; k1++) {
+				int x1 = x0 + minRadius*sx;
+				int y1 = y0 + minRadius*sy;
+				for (int r = minRadius; r <= maxRadius; x1 + sx, y1 + sy, r++) {
+					int x2 = x1 >> SHIFT, y2 = y1 >> SHIFT;
+					if ((unsigned int)x2 >= (unsigned int)(src.cols) || (unsigned int)y2 >= (unsigned int)(src.rows))
+						break;
+					accum[y*src.rows + x2]++;
+				}
+				sx = -sx; sy = -sy;
+			}
+			nz.push_back(std::pair<int, int>(x, y));
+		}
+	}
+	int nz_count = nz.size();
+	if (!nz_count)
+		return;
+	int k = 0;
+	for (int y = 1; y < src.rows - 1; y++) {
+		for (int x = 1; x < src.cols - 1; x++) {
+			int base = y*src.rows + x;
+			if (accum[base] > threshold &&
+				accum[base] > accum[base - 1] && accum[base] > accum[base + 1] &&
+				accum[base] > accum[base - src.cols - 4] && accum[base] > accum[base + src.cols]) {
+				centers.push_back(base);
+				detected_centers[k] = accum[base];
+				k++;
+			}
+
+		}
+	}
+	int center_count = centers.size();
+	if (!center_count)
+		return;
+	int *sort_buf = new int[MAX(center_count, nz_count)];
+	for (int i = 0; i < center_count; i++) {
+		sort_buf[i] = centers[i];
+	}
+	sort(sort_buf, center_count, detected_centers);
+	centers.clear();
+	for (int i = 0; i < center_count; i++) {
+		centers[i] = sort_buf[i];
+	}
+	memset(sort_buf, 0, sizeof(sort_buf[0])*MAX(center_count, nz_count));
+	int *dist_buf = new int[nz_count];
+	int x;
+	int y;
+	min_dist = MAX(min_dist, 1);
+	min_dist *= min_dist;
+	for (int i = 0; i < center_count; i++) {
+		int ofs = centers[i];
+		y = ofs / src.rows;
+		x = ofs - y*src.rows;
+		float r_best = 0;
+		int max_count = 0;
+		float dist_sum, start_dist;
+		float cx = (float)(x + 0.5f), cy = (float)(y + 0.5f);
+		int a = 0;
+		for (a = 0; a < circles.size(); a++) {
+			if ((circles[a].first.first - cx)*(circles[a].first.first - cx) + (circles[a].first.second - cy)*(circles[a].first.second - cy) < min_dist)
+				break;
+		}
+		if (a < circles.size())
+			continue;
+		int b, c;
+		for (b = c = 0; b < nz_count; b++)
+		{
+			float _dx, _dy, _r2;
+			_dx = cx - nz[b].first; _dy = cy - nz[b].second;
+			_r2 = _dx*_dx + _dy*_dy;
+			if (minRadius*minRadius <= _r2 && _r2 <= maxRadius*maxRadius)
+			{
+				dist_buf[k] = _r2;
+				sort_buf[k] = k;
+				k++;
+			}
+		}
+
+		int nz_count1 = k, start_idx = nz_count1 - 1;
+		if (nz_count1 == 0)
+			continue;
+		for (int m = 0; m < nz_count; m++) {
+			sqrt(dist_buf[m]);
+		}
+		sort(sort_buf, nz_count1, dist_buf);
+		dist_sum = start_dist = dist_buf[nz_count1 - 1];
+		for (int j = nz_count1 - 2; j >= 0; j--)
+		{
+			float d = dist_buf[j];
+
+			if (d > maxRadius)
+				break;
+
+			if (d - start_dist > 1)
+			{
+				float r_cur = dist_buf[(j + start_idx) / 2];
+				if ((start_idx - j)*r_best >= max_count*r_cur ||
+					(r_best < FLT_EPSILON && start_idx - j >= max_count))
+				{
+					r_best = r_cur;
+					max_count = start_idx - j;
+				}
+				start_dist = d;
+				start_idx = j;
+				dist_sum = 0;
+			}
+			dist_sum += d;
+		}
+		// Check if the circle has enough support
+		if (max_count > threshold)
+		{
+			float c[3];
+			c[0] = cx;
+			c[1] = cy;
+			c[2] = (float)r_best;
+			std::pair<float, float> p0(cx, cy);
+			std::pair<std::pair<float, float>, float> p1(p0, r_best);
+			circles.push_back(p1);
+		}
+	}
+}
+
+void myCVlib::houghCircle(cv::Mat src, cv::Mat &dst, double dp, double min_dist, double canny_threshold, double threshold, int minRadius, int maxRadius) {
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	gausFilter(src, mat, 9, 3);
+	std::vector<cv::Vec3f> circles;
+	cv::HoughCircles(mat, circles, CV_HOUGH_GRADIENT, dp, min_dist, canny_threshold, threshold, minRadius, maxRadius);
+	for (int i = 0; i < circles.size(); i++) {
+		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+		int radius = cvRound(circles[i][2]);
+		circle(dst, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
+		circle(dst, center, radius, cv::Scalar(0, 0, 255), 3, 8, 0);
+	}
+}
+
+void myCVlib::calcHist(cv::Mat src, int *hist, int histSize, int *ranges) {
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+	int histogram[256] = { 0 };
+	for (int i = 0; i < mat.rows; i++) {
+		uchar *src_data = mat.ptr<uchar>(i);
+		for (int j = 0; j < mat.cols*mat.channels(); j++) {
+			histogram[(int)src_data[j]]++;
+		}
+	}
+	//0-25 26-51 52-77 78-103 103-128 129-154 155-180 181-206 207-232 233-258
+	//0-4 5-9 10-14 15-19 20-24
+
+	int step = cvCeil((ranges[1] - ranges[0])*1.0 / histSize);
+	for (int i = ranges[0]; i <= ranges[1]; i++) {
+		hist[i / step] += histogram[i];
+	}
+	
+	
+}
+
+void myCVlib::getHistImg(int* hist, cv::Mat &dst, int histSize, int *ranges) {
+	
+	
+	int minVal = INT32_MAX;
+	int maxVal = INT32_MIN;
+	for (int i = 0; i < histSize; i++) {
+		if (hist[i] < minVal)
+			minVal = hist[i];
+		if (hist[i] > maxVal)
+			maxVal = hist[i];
+	}
+	cv::Mat mat(400, 400, CV_8U, cv::Scalar(255));
+	int hpt = 360;
+	for (int h = 0; h < histSize; h++) {
+		int val = hist[h];
+		int intensity = int(val *hpt / maxVal);
+		cv::line(mat, cv::Point(1.0*h/histSize*400, 400), cv::Point(1.0*h / histSize * 400,  400-intensity),cv:: Scalar::all(0),10);
+	}
+	dst = mat.clone();
+}
+
+
+void myCVlib::equalizeHist(cv::Mat src, cv::Mat &dst,int histSize,int *ranges) {
+	int *hist = new int[histSize];
+	float *hs = new float[histSize];
+	float *hp = new float[histSize];
+	int *equalizedHist = new int[histSize];
+	memset(hist, 0, sizeof(int)*histSize);
+	memset(hs, 0, sizeof(float)*histSize);
+	memset(hp, 0, sizeof(float)*histSize);
+	memset(equalizedHist, 0, sizeof(int)*histSize);
+	calcHist(src, hist, histSize, ranges);
+	
+	int sum = src.rows*src.cols;
+	
+	for (int i = 0; i < histSize; i++) {
+		hs[i] = hist[i] * 1.0 / sum;
+	}
+	for (int i = 0; i < histSize; i++) {
+		if (i == 0)
+			hp[i] = hs[i];
+		else
+			hp[i] = hp[i - 1] + hs[i];
+		equalizedHist[i] = cvRound(255.0*hp[i]);
+	}
+
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+
+
+	for (int i = 0; i < mat.rows; i++) {
+		uchar *src_data = mat.ptr<uchar>(i);
+		uchar *dst_data = dst.ptr<uchar>(i);
+		for (int j = 0; j < mat.cols; j++) {
+			int grey =int (src_data[j]);
+			if (grey == 0)
+				dst_data[j] = 0;
+			else
+				dst_data[j] = uchar(equalizedHist[grey]);
+		}
+	}
+	delete[] hist;
+	delete[] hs;
+	delete[] hp;
+	delete[] equalizedHist;
+}
+
+void myCVlib::linear_adjustContrast(cv::Mat src, cv::Mat &dst, int *p1, int *p2) {
+	
+	double x1 = p1[0];
+	double y1 = p1[1];
+	double x2 = p2[0];
+	double y2 = p2[1];
+	if (x1 == 0 || y1==255|| x1 == x2)
+		return;
+	double k1 = y1*1.0 / x1;
+	double k2 = (y2 - y1)*1.0 / (x2 - x1);
+	double k3 = (255.0 - y2) / (255.0 - y1);
+
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+
+	for (int i = 0; i < mat.rows; i++) {
+		uchar *src_data = mat.ptr<uchar>(i);
+		uchar *dst_data = dst.ptr<uchar>(i);
+		for (int j = 0; j < mat.cols; j++) {
+			double x = double(src_data[j]);
+			if (x < x1) {
+				dst_data[j] = cvRound(k1*x);
+			}
+			else if (x >= x1&&x <= x2) {
+				dst_data[j] = cvRound(k2*(x-x1)+y1);
+			}
+			else {
+				dst_data[j] = cvRound(k3*(x - x2) + y2);
+			}
+		}
+	}
+}
 
 

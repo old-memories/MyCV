@@ -90,6 +90,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_GausFilterSliderWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="HoughSliderWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_HoughSliderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_HoughSliderWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyCV.h">
@@ -114,6 +123,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="GausFilterSliderWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="HoughSliderWidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
