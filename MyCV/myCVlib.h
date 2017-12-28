@@ -50,4 +50,5 @@ namespace myCVlib {
 	void bin_dilate(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
 	void bin_open(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
 	void bin_close(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
+	void bin_thin(cv::Mat src, cv::Mat &dst, int iterations);
 }

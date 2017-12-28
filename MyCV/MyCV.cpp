@@ -168,25 +168,28 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_OTSU, SIGNAL(triggered(bool)), this, SLOT(on_OTSU_action_selected()));
 
 	//QMenu
-	QMenu* bin_menu = new QMenu(code->toUnicode("二值图像形态学"));
+	QMenu* bin_menu = new QMenu(code->toUnicode("二值数学形态学"));
 	edit_menu->addMenu(bin_menu);
 	QAction* action_setSE = new QAction(code->toUnicode("设置卷积核"));
 	QAction* action_bin_dilate = new QAction(code->toUnicode("二值膨胀"));
 	QAction* action_bin_erode = new QAction(code->toUnicode("二值腐蚀"));
 	QAction* action_bin_open = new QAction(code->toUnicode("二值开"));
 	QAction* action_bin_close = new QAction(code->toUnicode("二值闭"));
+	QAction *action_bin_thin = new QAction(code->toUnicode("二值细化"));
 	
 	bin_menu->addAction(action_setSE);
 	bin_menu->addAction(action_bin_dilate);
 	bin_menu->addAction(action_bin_erode);
 	bin_menu->addAction(action_bin_open);
 	bin_menu->addAction(action_bin_close);
+	bin_menu->addAction(action_bin_thin);
 
 	connect(action_bin_dilate, SIGNAL(triggered(bool)), this, SLOT(on_bin_dilate_action_selected()));
 	connect(action_bin_erode, SIGNAL(triggered(bool)), this, SLOT(on_bin_erode_action_selected()));
 	connect(action_bin_open, SIGNAL(triggered(bool)), this, SLOT(on_bin_open_action_selected()));
 	connect(action_bin_close, SIGNAL(triggered(bool)), this, SLOT(on_bin_close_action_selected()));
 	connect(action_setSE, SIGNAL(triggered(bool)), this, SLOT(on_setSE_action_selected()));
+	connect(action_bin_thin, SIGNAL(triggered(bool)), this, SLOT(on_bin_thin_action_selected()));
 
 
 	//QMenu
@@ -524,25 +527,25 @@ void MyCV::useGausFilter(int aperture_size, int aperture_sigma) {
 void MyCV::on_nn_mul2_action_selected() {
 	cv::Mat mat;
 	myCVlib::nn_resize(src_image, mat, 2);
-	//src_image = mat.clone();
+	src_image = mat.clone();
 	imageShowLabel->displayMat(mat);
 }
 void MyCV::on_nn_div2_action_selected() {
 	cv::Mat mat;
 	myCVlib::nn_resize(src_image, mat, 0.5);
-	//src_image = mat.clone();
+	src_image = mat.clone();
 	imageShowLabel->displayMat(mat);
 }
 void MyCV::on_linear_mul2_action_selected() {
 	cv::Mat mat;
 	myCVlib::linear_resize(src_image, mat, 2);
-	//src_image = mat.clone();
+	src_image = mat.clone();
 	imageShowLabel->displayMat(mat);
 }
 void MyCV::on_linear_div2_action_selected() {
 	cv::Mat mat;
 	myCVlib::linear_resize(src_image, mat, 0.5);
-	//src_image = mat.clone();
+	src_image = mat.clone();
 	imageShowLabel->displayMat(mat);
 }
 
@@ -653,4 +656,10 @@ void MyCV::on_bin_close_action_selected() {
 	cv::Mat mat;
 	myCVlib::bin_close(src_image, mat, kernal, 5);
 	imageShowLabel->displayMat(mat);
+
+}
+void MyCV::on_bin_thin_action_selected() {
+		cv::Mat mat;
+		myCVlib::bin_thin(src_image, mat, 3);
+		imageShowLabel->displayMat(mat);
 }

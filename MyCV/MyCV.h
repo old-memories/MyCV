@@ -58,6 +58,7 @@ private slots:
 	void on_bin_erode_action_selected();
 	void on_bin_open_action_selected();
 	void on_bin_close_action_selected();
+	void on_bin_thin_action_selected();
 	void showMessage(QString str);
 	void changeImageStatus();
 	void showadjustHSLWindow();
