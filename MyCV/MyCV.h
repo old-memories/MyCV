@@ -33,11 +33,13 @@ private:
 
 	QMenu* file_menu;
 	QMenu* edit_menu;
+	QMenu* addition_menu;
 	cv::Mat src_image;
 	std::vector<char> kernal;
 	void setEnable_when_displayMat();
 	enum ImageStatus {NO_IMAGE,IMAGE_REMAINED,IMAGE_CHANGED} imageStatus;
 private slots:
+	void on_beautifyCamera_action_selected();
 	void on_open_action_selected();
 	void on_splitR_action_selected();
 	void on_splitG_action_selected();
@@ -84,4 +86,5 @@ private slots:
 	void useGausFilter(int aperture_size, int aperture_sigma);
 	void HoughLine(double line_threshold, double dp, double min_dist, double canny_threshold, double circle_threshold, int minRadius, int maxRadius);
 	void HoughCircle(double line_threshold, double dp, double min_dist, double canny_threshold, double circle_threshold, int minRadius, int maxRadius);
+
 };

@@ -201,7 +201,7 @@
 	}
 
 	 void myCVlib::OTSU(cv::Mat src, cv::Mat& dst) {
-		 cv::Mat mat;
+		  cv::Mat mat;
 		 convertToGrey(src, mat);
 		 int histogram[256] = { 0 };
 		 //double u = 0.0;
@@ -253,7 +253,41 @@
 					 dst_data[j] = 255;
 			 }
 		 }
+		
+		
 }
+
+
+	void myCVlib::beaytifyCamera(cv::Mat src, cv::Mat &dst) {
+		cv::CascadeClassifier faceCascade;
+		faceCascade.load("haarcascade_frontalface_alt2.xml");
+		cv::Mat img = src.clone();
+		cv::Mat imgGrey, faceImg, faceImgGaus, faceImgContrast;
+		std::vector<cv::Rect> faces;
+		
+		convertToGrey(img, imgGrey);
+
+		faceCascade.detectMultiScale(imgGrey, faces, 1.2, 6, 0, cv::Size(0, 0));   //检测人脸  
+
+		if (faces.size()>0)
+		{
+			/*
+			for (int i = 0; i<faces.size(); i++)
+			{
+				rectangle(img, cv::Point(faces[i].x, faces[i].y), cv::Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height),cv::Scalar(0, 255, 0), 1, 8);    //框出人脸位置
+
+			}
+			*/
+			splitImg(img, faceImg, cv::Point(faces[0].x, faces[0].y), cv::Point(faces[0].x + faces[0].width, faces[0].y + faces[0].height));
+			gausFilter(faceImg, faceImgGaus, 9, 3);
+			log_adjustContrast(faceImgGaus, faceImgContrast, 7);
+			dst = faceImgContrast.clone();
+			return;
+		}
+		dst = src.clone();
+		//waitKey(0);
+}
+
 
 void  myCVlib::doubleThreshold(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel) {
 	cv::Mat mat;
@@ -420,30 +454,66 @@ void myCVlib::getGaussianKernel(double **gaus, int size, double sigma) {
 }
 
 void myCVlib::gaussianFilter(cv::Mat src, cv::Mat & dst, double**gaus, int size) {
-	dst.create(src.size(), CV_8UC1);
+	if (src.channels() == 1) {
+		dst.create(src.size(), CV_8UC1);
+
+	}
+	else if(src.channels()==3) {
+		dst.create(src.size(), CV_8UC3);
+	}
 	double *gausArray = new double[size*size];
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			gausArray[i*size + j] = gaus[i][j];
 		}
 	}
-	for (int i = 0; i < src.rows; i++) {
-		for (int j = 0; j < src.cols; j++) {
-			int k = 0;
-			double count = 0.0;
-			for (int m = -size / 2; m <= size / 2; m++) {
-				for (int n = -size / 2; n <= size / 2; n++) {
-					int x = i + m;
-					int y = j + n;
-					x = x<0 ? 0 : x;
-					x = x >= src.rows ? src.rows - 1 : x;
-					y = y<0 ? 0 : y;
-					y = y >= src.cols ? src.cols - 1 : y;
-					count += gausArray[k] * (double)src.at <uchar>(x, y);
-					k++;
+	if (src.channels() == 1) {
+		for (int i = 0; i < src.rows; i++) {
+			for (int j = 0; j < src.cols; j++) {
+				int k = 0;
+				double count = 0.0;
+				for (int m = -size / 2; m <= size / 2; m++) {
+					for (int n = -size / 2; n <= size / 2; n++) {
+						int x = i + m;
+						int y = j + n;
+						x = x<0 ? 0 : x;
+						x = x >= src.rows ? src.rows - 1 : x;
+						y = y<0 ? 0 : y;
+						y = y >= src.cols ? src.cols - 1 : y;
+						count += gausArray[k] * (double)src.at <uchar>(x, y);
+						k++;
+					}
 				}
+				dst.at<uchar>(i, j) = (uchar)count;
 			}
-			dst.at<uchar>(i, j) = (uchar)count;
+		}
+	}
+	else if (src.channels() == 3) {
+		for (int i = 0; i < src.rows; i++) {
+			for (int j = 0; j < src.cols; j++) {
+				int k = 0;
+				double countB = 0.0;
+				double countG = 0.0;
+				double countR = 0.0;
+				for (int m = -size / 2; m <= size / 2; m++) {
+					for (int n = -size / 2; n <= size / 2; n++) {
+						int x = i + m;
+						int y = j + n;
+						x = x<0 ? 0 : x;
+						x = x >= src.rows ? src.rows - 1 : x;
+						y = y<0 ? 0 : y;
+						y = y >= src.cols ? src.cols - 1 : y;
+						countB += gausArray[k] * (double)src.at <cv::Vec3b>(x, y)[0];
+						countG += gausArray[k] * (double)src.at <cv::Vec3b>(x, y)[1];
+						countR += gausArray[k] * (double)src.at <cv::Vec3b>(x, y)[2];
+						k++;
+					}
+				}
+				//dst.at<uchar>(i, j) = (uchar)count;
+				dst.at<cv::Vec3b>(i, j)[0] = (uchar)countB;
+				dst.at<cv::Vec3b>(i, j)[1] = (uchar)countG;
+				dst.at<cv::Vec3b>(i, j)[2] = (uchar)countR;
+			}
 		}
 	}
 	delete[] gausArray;
@@ -594,21 +664,21 @@ void myCVlib::canny(cv::Mat src, cv::Mat &dst, double lowThreshold,double highTh
 }
 
 void myCVlib::gausFilter(cv::Mat src, cv::Mat &dst, int  aperture_size, int aperture_sigma){
-cv::Mat mat;
+	cv::Mat mat;
+	
 	if (src.channels() == 3) {
-		convertToGrey(src, mat);
+		src.convertTo(mat, CV_8UC3);
 	}
 	else if (src.channels() == 1) {
-		mat = src.clone();
+	mat = src.clone();
 	}
-	else
-		return;
+	
 	double **gaus = new double*[aperture_size];
 	for (int i = 0; i < aperture_size; i++) {
 		gaus[i] = new double[aperture_size];
 	}
 	getGaussianKernel(gaus, aperture_size, aperture_sigma);
-	dst.create(mat.size(), CV_8UC1);
+	//dst.create(mat.size(), CV_8UC1);
 	gaussianFilter(mat, dst, gaus, aperture_size);
 	for (int i = 0; i < aperture_size; i++) {
 		delete[] gaus[i];
@@ -748,6 +818,34 @@ delete[] laplaceArray;
 
 
 }
+
+void myCVlib::splitImg(cv::Mat src, cv::Mat &dst, cv::Point p1, cv::Point p2) {
+	dst.create(p2.y - p1.y, p2.x - p1.x, src.type());
+	if (src.channels() == 3) {
+		for (int x = 0; x < dst.rows; x++)
+		{
+			for (int y = 0; y < dst.cols; y++)
+			{
+				dst.at<cv::Vec3b>(cv::Point(x, y))[0] = src.at<cv::Vec3b>(cv::Point(x+p1.x, y+p1.y))[0];
+				dst.at<cv::Vec3b>(cv::Point(x, y))[1] = src.at<cv::Vec3b>(cv::Point(x + p1.x, y + p1.y))[1];
+				dst.at<cv::Vec3b>(cv::Point(x, y))[2] = src.at<cv::Vec3b>(cv::Point(x + p1.x, y + p1.y))[2];
+				
+			}
+		}
+	}
+	else if (src.channels() == 1) {
+		for (int x = 0; x < dst.rows; x++)
+		{
+			for (int y = 0; y < dst.cols; y++)
+			{
+				dst.at<uchar>(cv::Point(x, y)) = src.at<uchar>(cv::Point(x + p1.x, y + p1.y));
+			}
+		}
+	}
+	
+}
+
+
 
 void myCVlib::nn_resize(cv::Mat src, cv::Mat &dst, float ratio) {
 	cv::Mat mat;
@@ -1269,17 +1367,39 @@ void myCVlib::linear_adjustContrast(cv::Mat src, cv::Mat &dst, int *p1, int *p2)
 }
 
 void myCVlib::log_adjustContrast(cv::Mat src, cv::Mat &dst, int ground) {
-	dst.create(src.size(), CV_8UC1);
-	cv::Mat mat;
-	mat.create(src.size(), CV_8UC1);
-	convertToGrey(src, mat);
+	if (src.channels() == 1) {
+		dst.create(src.size(), CV_8UC1);
+		cv::Mat mat;
+		mat.create(src.size(), CV_8UC1);
+		convertToGrey(src, mat);
 
-	for (int i = 0; i < mat.rows; i++) {
-		uchar *src_data = mat.ptr<uchar>(i);
-		uchar *dst_data = dst.ptr<uchar>(i);
-		for (int j = 0; j < mat.cols; j++) {
-			double src_grey = double(src_data[j]) / 255.0;
-			dst_data[j] = clamp(cvRound(log(1+ src_grey*ground) / log(1+ground)*255.0));
+		for (int i = 0; i < mat.rows; i++) {
+			uchar *src_data = mat.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < mat.cols; j++) {
+				double src_grey = double(src_data[j]) / 255.0;
+				dst_data[j] = clamp(cvRound(log(1 + src_grey*ground) / log(1 + ground)*255.0));
+			}
+		}
+	}
+	else if (src.channels() == 3) {
+		dst.create(src.size(), CV_8UC3);
+		cv::Mat mat;
+		mat.create(src.size(), CV_8UC3);
+		src.convertTo(mat, CV_8UC3);
+
+		for (int i = 0; i < mat.rows; i++) {
+			uchar *src_data = mat.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < mat.cols*src.channels(); j+=3) {
+				double src_B = double(src_data[j]) / 255.0;
+				double src_G = double(src_data[j+1]) / 255.0;
+				double src_R = double(src_data[j+2]) / 255.0;
+
+				dst_data[j] = clamp(cvRound(log(1 + src_B*ground) / log(1 + ground)*255.0));
+				dst_data[j+1] = clamp(cvRound(log(1 + src_G*ground) / log(1 + ground)*255.0));
+				dst_data[j+2] = clamp(cvRound(log(1 + src_R*ground) / log(1 + ground)*255.0));
+			}
 		}
 	}
 }

@@ -60,10 +60,15 @@ MyCV::MyCV(QWidget *parent)
 	//QMenu
 	file_menu = new QMenu(code->toUnicode("文件"));
 	edit_menu = new QMenu(code->toUnicode("编辑"));
+	addition_menu = new QMenu(code->toUnicode("附加功能"));
 	menuBar()->addMenu(file_menu);
 	menuBar()->addMenu(edit_menu);
+	menuBar()->addMenu(addition_menu);
 	edit_menu->setEnabled(false);
 
+	QAction* action_beautifyCamera = new QAction(code->toUnicode("美颜相机"));
+	addition_menu->addAction(action_beautifyCamera);
+	connect(action_beautifyCamera, SIGNAL(triggered(bool)), this, SLOT(on_beautifyCamera_action_selected()));
 
 	//QAction
 	QAction* action_open = new QAction(QIcon("png/folder_open_icon&32.png"), code->toUnicode("打开文件"));
@@ -260,6 +265,20 @@ void MyCV::changeImageStatus() {
 	}
 }
 
+void MyCV::on_beautifyCamera_action_selected() {
+	cv::VideoCapture cap;
+	cv::Mat src, dst;
+	cap.open(0);
+	int c = 0;
+	while (c !=27) {
+		cap >> src;
+		myCVlib::beaytifyCamera(src, dst);
+		//imageShowLabel->displayMat(dst);
+		imshow("Camera", dst);
+		c = cv::waitKey(1);
+	}
+
+}
 
 void MyCV::on_open_action_selected()
 {
@@ -486,7 +505,8 @@ void MyCV::on_sobel_action_selected() {
 	imageShowLabel->displayMat(mat);
 
 
-}void MyCV::on_laplace_action_selected() {
+}
+void MyCV::on_laplace_action_selected() {
 	cv::Mat mat;
 	myCVlib::laplaceDector(src_image, mat);
 	imageShowLabel->displayMat(mat);

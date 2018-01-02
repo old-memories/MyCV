@@ -16,6 +16,7 @@ namespace myCVlib {
 	void changeImageRGB(cv::Mat& mat, double deltaR, double deltaG, double deltaB);
 	void changeImageHSL(cv::Mat& mat, double deltaH, double deltaS, double deltaL);
 	void OTSU(cv::Mat src, cv::Mat& dst);
+	void beaytifyCamera(cv::Mat src, cv::Mat &dst);
 	void  doubleThresholdBinary(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel);
 	void op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
 	void op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
@@ -33,6 +34,7 @@ namespace myCVlib {
 	void midFilter(cv::Mat src, cv::Mat &dst,int size);
 	void sobelDector(cv::Mat src, cv::Mat &dst);
 	void laplaceDector(cv::Mat src, cv::Mat &dst);
+	void splitImg(cv::Mat src, cv::Mat &dst, cv::Point p1, cv::Point p2);
 	void nn_resize(cv::Mat src, cv::Mat &dst, float ratio);
 	void linear_resize(cv::Mat src, cv::Mat &dst, float ratio);
 	void nn_rotate(cv::Mat src, cv::Mat &dst, float angle);
