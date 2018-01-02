@@ -18,6 +18,8 @@ namespace myCVlib {
 	void OTSU(cv::Mat src, cv::Mat& dst);
 	void beaytifyCamera(cv::Mat src, cv::Mat &dst);
 	void  doubleThresholdBinary(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel);
+	void op_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void op_isEqual(cv::Mat src1, cv::Mat src2, bool &isEqual);
 	void op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
 	void op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
 	void op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
@@ -53,4 +55,8 @@ namespace myCVlib {
 	void bin_open(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
 	void bin_close(cv::Mat src, cv::Mat &dst, std::vector<char>kernal, int size);
 	void bin_thin(cv::Mat src, cv::Mat &dst, int iterations);
+	void distanceTransform(cv::Mat src, cv::Mat &dst, int mode);
+	void skeleton(cv::Mat src, cv::Mat &dst);
+	void bin_rebuildOpen(cv::Mat src, cv::Mat &dst, cv::Mat ground, std::vector<char>erode_kernal, int erode_kernal_size, std::vector<char>dilate_kernal, int dilate_kernal_size, int erode_time);
+
 }

@@ -181,6 +181,10 @@ MyCV::MyCV(QWidget *parent)
 	QAction* action_bin_open = new QAction(code->toUnicode("二值开"));
 	QAction* action_bin_close = new QAction(code->toUnicode("二值闭"));
 	QAction *action_bin_thin = new QAction(code->toUnicode("二值细化"));
+	QAction *	action_distanceTransform = new QAction(code->toUnicode("距离变换"));
+	QAction *action_skeleton = new QAction(code->toUnicode("骨架"));
+	QAction *action_rebuildOpen = new QAction(code->toUnicode("重建开操作"));
+
 	
 	bin_menu->addAction(action_setSE);
 	bin_menu->addAction(action_bin_dilate);
@@ -188,6 +192,10 @@ MyCV::MyCV(QWidget *parent)
 	bin_menu->addAction(action_bin_open);
 	bin_menu->addAction(action_bin_close);
 	bin_menu->addAction(action_bin_thin);
+	bin_menu->addAction(action_distanceTransform);
+	bin_menu->addAction(action_skeleton);
+	bin_menu->addAction(action_rebuildOpen);
+
 
 	connect(action_bin_dilate, SIGNAL(triggered(bool)), this, SLOT(on_bin_dilate_action_selected()));
 	connect(action_bin_erode, SIGNAL(triggered(bool)), this, SLOT(on_bin_erode_action_selected()));
@@ -195,7 +203,9 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_bin_close, SIGNAL(triggered(bool)), this, SLOT(on_bin_close_action_selected()));
 	connect(action_setSE, SIGNAL(triggered(bool)), this, SLOT(on_setSE_action_selected()));
 	connect(action_bin_thin, SIGNAL(triggered(bool)), this, SLOT(on_bin_thin_action_selected()));
-
+	connect(action_distanceTransform, SIGNAL(triggered(bool)), this, SLOT(on_distanceTransform_action_selected()));
+	connect(action_skeleton, SIGNAL(triggered(bool)), this, SLOT(on_skeleton_action_selected()));
+	connect(action_rebuildOpen, SIGNAL(triggered(bool)), this, SLOT(on_rebuildOpen_action_selected()));
 
 	//QMenu
 	QMenu* arithop_menu = new QMenu(code->toUnicode("图像代数操作"));
@@ -394,6 +404,33 @@ void MyCV::on_OTSU_action_selected() {
 	myCVlib::OTSU(src_image, mat);
 	src_image = mat.clone();
 	imageShowLabel->displayMat(src_image);
+}
+
+void MyCV::on_distanceTransform_action_selected() {
+	cv::Mat mat;
+	myCVlib::distanceTransform(src_image, mat, 1);
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_skeleton_action_selected() {
+	cv::Mat mat;
+	myCVlib::skeleton(src_image, mat);
+	imageShowLabel->displayMat(mat);
+}
+void MyCV::on_rebuildOpen_action_selected() {
+	cv::Mat mat, src2;
+	QString filename = QFileDialog::getOpenFileName(this,
+		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
+	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
+	src2 = cv::imread(name, cv::IMREAD_UNCHANGED);
+	int channels = src2.channels();
+	//cv::imshow(name.c_str(), image);
+	//cv::waitKey();
+	if (!src2.data)
+	{
+		return;
+	}
+	myCVlib::bin_rebuildOpen(src_image, mat,src2,kernal, 5,kernal,5,1);
+	imageShowLabel->displayMat(mat);
 }
 
 

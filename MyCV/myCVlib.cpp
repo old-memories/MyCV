@@ -436,6 +436,74 @@ void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	}
 }
 
+
+void myCVlib::op_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
+	if (src1.rows != src2.rows || src1.cols != src2.cols) {
+		dst = src1.clone();
+		return;
+	}
+	if (src1.channels() == 3 && src2.channels() == 1) {
+		cv::Mat src1_grey;
+		convertToGrey(src1, src1_grey);
+		dst.create(src1_grey.size(), CV_8UC1);
+		for (int i = 0; i < src1_grey.rows; i++) {
+			uchar *src1_data = src1_grey.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1_grey.cols*src1_grey.channels(); j += 1) {
+				//dst_data[j] = clamp((double)src1_data[j] + (double)src2_data[j]);
+				if (src1_data[j] == 255 && src2_data[j] == 255)
+					dst_data[j] = 255;
+				else
+					dst_data[j] = 0;
+			}
+		}
+		return;
+	}
+	else if (src1.channels() == 1 && src2.channels() == 1) {
+		dst.create(src1.size(), CV_8UC1);
+		for (int i = 0; i < src1.rows; i++) {
+			uchar *src1_data = src1.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1.cols*src1.channels(); j += 1) {
+				//dst_data[j] = clamp((double)src1_data[j] + (double)src2_data[j]);
+				if (src1_data[j] == 0 && src2_data[j] == 0)
+					dst_data[j] = 0;
+				else
+					dst_data[j] = 255;
+			}
+		}
+		return;
+	}
+	else {
+		dst = src1.clone();
+		return;
+	}
+}
+
+
+void myCVlib::op_isEqual(cv::Mat src1, cv::Mat src2, bool &isEqual) {
+	if (src1.channels() == 1 && src2.channels() == 1) {
+		for (int i = 0; i < src1.rows; i++) {
+			uchar *src1_data = src1.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			for (int j = 0; j < src1.cols*src1.channels(); j += 1) {
+				//dst_data[j] = clamp((double)src1_data[j] + (double)src2_data[j]);
+				if (src1_data[j] != src2_data[j]) {
+					isEqual = false;
+					return;
+				}
+					
+			}
+		}
+		isEqual = true;
+		return;
+	}
+	else
+		isEqual = false;
+}
+
 void myCVlib::getGaussianKernel(double **gaus, int size, double sigma) {
 	const double pi = CV_PI;
 	int center = size / 2;
@@ -1597,3 +1665,168 @@ void myCVlib::bin_thin(cv::Mat src, cv::Mat &dst, int iterations) {
 				break;
 		}
 	}
+
+
+	static double EuclideanDistance(double x, double y, double dx, double dy) {
+		return sqrt((x - dx) * (x - dx) + (y - dy) * (y - dy));
+	}
+	static double CityblockDistance(double x, double y, double dx, double dy) {
+		return abs(x - dx) + abs(y - dy);
+	}
+	static double ChessboardDistance(double x, double y, double dx, double dy) {
+		return std::max(abs(x - dx), abs(y - dy));
+	}
+	static double GetMin(double a, double b, double c, double d, double e) {
+		return std::min(std::min(std::min(a, b), std::min(c, d)), e);
+	}
+
+	static double GetDistance(double x, double y, double dx, double dy, int mode) {
+		double result = 0;
+		switch (mode) {
+		case 1:
+			result = EuclideanDistance(x, y, dx, dy);
+			break;
+		case 2:
+			result = CityblockDistance(x, y, dx, dy);
+			break;
+		case 3:
+			result = ChessboardDistance(x, y, dx, dy);
+			break;
+		}
+		return result;
+	}
+
+//倒角距离变换算法
+void myCVlib::distanceTransform(cv::Mat src, cv::Mat &dst, int mode) {
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+	//dst.create(mat.size(), CV_8UC1);
+	dst = mat.clone();
+	int rows = mat.rows;
+	int cols = mat.cols;
+	double p0 = 0, p1 = 0, p2 = 0, p3 = 0, p4 = 0, p5 = 0, p6 = 0, p7 = 0, p8 = 0, min = 0;
+	int mMax = 0, mMin = 255;
+	for (int i = 0; i < rows; i++)
+	{
+		for (int j = 0; j < cols; j++)
+		{
+			if (i > 0 && i < rows - 1 && j > 0 && j < cols - 1){
+					p0 = dst.at<uchar>(i, j);
+					if (p0 != 0) {
+						p1 = dst.at<uchar>(i - 1, j) + 3;//GetDistance(i, j, i - 1, j, mode);
+						p2 = dst.at<uchar>(i - 1, j - 1) + 4;// GetDistance(i, j, i - 1, j-1, mode);
+						p3 = dst.at<uchar>(i, j - 1) + 3;//GetDistance(i, j, i, j - 1, mode);
+						p4 = dst.at<uchar>(i + 1, j - 1) + 4;//GetDistance(i, j, i+1, j - 1, mode);
+						min = GetMin(p0, p1, p2, p3, p4);
+						dst.at<uchar>(i, j) = (uchar)std::min(min, 255.0);
+					}	
+				}				
+			else
+				dst.at<uchar>(i, j) = 0;
+		}
+	}
+	for (int i = rows - 1; i > 0;i--)
+	{
+		for (int j = cols - 1; j > 0; j--)
+		{
+			if (i > 0 && i < rows - 1 && j > 0 && j < cols - 1) {
+				p0 = dst.at<uchar>(i, j);
+				if (p0 != 0) {
+					p5 = dst.at<uchar>(i + 1, j) + 3;//GetDistance(i, j, i + 1, j, mode);
+					p6 = dst.at<uchar>(i + 1, j + 1) + 4;// GetDistance(i, j, i + 1, j + 1, mode);
+					p7 = dst.at<uchar>(i, j + 1) + 3;// GetDistance(i, j, i, j + 1, mode);
+					p8 = dst.at<uchar>(i - 1, j + 1) + 4;// GetDistance(i, j, i - 1, j + 1, mode);
+					min = GetMin(p0, p5, p6, p7, p8);
+					dst.at<uchar>(i, j) = (uchar)std::min(min, 255.0);
+					mMax = (int)std::max(min, (double)mMax);
+				}
+					
+			}
+			else{
+				dst.at<uchar>(i, j) = 0;
+			}
+
+		}
+
+	}
+	
+	mMin = 0;
+	for (int i = 0; i < rows; i++)
+	{
+		for (int j = 0; j < cols; j++)
+		{
+			p0 = dst.at<uchar>(i, j);
+			if (p0 != 0){
+				dst.at<uchar>(i, j) = (uchar)((p0 - mMin) * 255 / (mMax - mMin));
+			}
+			
+		}
+
+	}
+	
+	
+}
+
+void myCVlib::skeleton(cv::Mat src, cv::Mat &dst) {
+	cv::Mat src_grey;
+	src_grey.create(src.size(), CV_8UC1);
+	convertToGrey(src, src_grey);
+	cv::Mat mat;
+	mat.create(src_grey.size(), CV_8UC1);
+	bin_thin(src_grey, mat,1);
+	dst = mat.clone();
+	int width = mat.cols;
+	int height = mat.rows;
+	for (int i = 0; i < height; ++i)
+	{
+		uchar * p = mat.ptr<uchar>(i);
+		uchar * dstP = dst.ptr<uchar>(i);
+		for (int j = 0; j < width; ++j)
+		{
+			// 实现两个点之间至少隔一个像素  
+			//  p9 p2 p3    
+			//  p8 p1 p4    
+			//  p7 p6 p5    
+			uchar p1 = p[j];
+			if (p1 != 255) continue;
+			uchar p4 = (j == width - 1) ? 0 : *(p + j + 1);
+			uchar p8 = (j == 0) ? 0 : *(p + j - 1);
+			uchar p2 = (i == 0) ? 0 : *(p - mat.step + j);
+			uchar p3 = (i == 0 || j == width - 1) ? 0 : *(p - mat.step + j + 1);
+			uchar p9 = (i == 0 || j == 0) ? 0 : *(p - mat.step + j - 1);
+			uchar p6 = (i == height - 1) ? 0 : *(p + mat.step + j);
+			uchar p5 = (i == height - 1 || j == width - 1) ? 0 : *(p + mat.step + j + 1);
+			uchar p7 = (i == height - 1 || j == 0) ? 0 : *(p + mat.step + j - 1);
+			if (p2 + p3 + p8 + p9 >= 1)
+			{
+				dstP[j] = 0;
+			}
+		}
+	}
+	
+}
+
+void myCVlib::bin_rebuildOpen(cv::Mat src, cv::Mat &dst, cv::Mat ground, std::vector<char>erode_kernal, int erode_kernal_size, std::vector<char>dilate_kernal, int dilate_kernal_size, int erode_time) {
+	cv::Mat mat1, mat2, mat3;
+	mat1 = src.clone();
+	for (int i = 0; i < erode_time; i++) {
+		cv::Mat mat2 = cv::Mat::zeros(mat1.size(), CV_8UC1);
+		bin_erode(mat1, mat2, erode_kernal, erode_kernal_size);
+		mat1 = mat2.clone();
+	}
+	bool isEqual = false;
+	while (!isEqual) {
+		mat3 = mat1.clone();
+		cv::Mat mat2 = cv::Mat::zeros(mat1.size(), CV_8UC1);
+		bin_dilate(mat1, mat2, dilate_kernal, dilate_kernal_size);
+		mat1 = mat2.clone();
+		op_and(mat1, ground, mat1);
+		//cv::imshow("1", mat1);
+		//cv::waitKey(0);
+		op_isEqual(mat1, mat3, isEqual);
+	}
+	dst = mat1.clone();
+}
+
+

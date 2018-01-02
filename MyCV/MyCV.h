@@ -54,6 +54,9 @@ private slots:
 	void on_midFilter_action_selected();
 	void on_gausFilter_action_selected();
 	void on_OTSU_action_selected();
+	void on_distanceTransform_action_selected();
+	void on_skeleton_action_selected();
+	void on_rebuildOpen_action_selected();
 	void on_setSE_action_selected();
 	void setSE(std::vector<char>kernal);
 	void on_bin_dilate_action_selected();
