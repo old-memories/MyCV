@@ -437,7 +437,7 @@ void myCVlib::op_multiple(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 }
 
 
-void myCVlib::op_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
+void myCVlib::op_bin_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 	if (src1.rows != src2.rows || src1.cols != src2.cols) {
 		dst = src1.clone();
 		return;
@@ -472,6 +472,58 @@ void myCVlib::op_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
 					dst_data[j] = 0;
 				else
 					dst_data[j] = 255;
+			}
+		}
+		return;
+	}
+	else {
+		dst = src1.clone();
+		return;
+	}
+}
+
+void myCVlib::op_grey_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst) {
+	if (src1.rows != src2.rows || src1.cols != src2.cols) {
+		dst = src1.clone();
+		return;
+	}
+	if (src1.channels() == 3 && src2.channels() == 1) {
+		cv::Mat src1_grey;
+		convertToGrey(src1, src1_grey);
+		dst.create(src1_grey.size(), CV_8UC1);
+		for (int i = 0; i < src1_grey.rows; i++) {
+			uchar *src1_data = src1_grey.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1_grey.cols*src1_grey.channels(); j += 1) {
+				//dst_data[j] = clamp((double)src1_data[j] + (double)src2_data[j]);
+				/*
+				if (src1_data[j] == 255 && src2_data[j] == 255)
+					dst_data[j] = 255;
+				else
+					dst_data[j] = 0;
+				*/
+				dst_data[j] = std::min(src1_data[j], src2_data[j]);
+				
+			}
+		}
+		return;
+	}
+	else if (src1.channels() == 1 && src2.channels() == 1) {
+		dst.create(src1.size(), CV_8UC1);
+		for (int i = 0; i < src1.rows; i++) {
+			uchar *src1_data = src1.ptr<uchar>(i);
+			uchar *src2_data = src2.ptr<uchar>(i);
+			uchar *dst_data = dst.ptr<uchar>(i);
+			for (int j = 0; j < src1.cols*src1.channels(); j += 1) {
+				//dst_data[j] = clamp((double)src1_data[j] + (double)src2_data[j]);
+				/*
+				if (src1_data[j] == 255 && src2_data[j] == 255)
+				dst_data[j] = 255;
+				else
+				dst_data[j] = 0;
+				*/
+				dst_data[j] = std::min(src1_data[j], src2_data[j]);
 			}
 		}
 		return;
@@ -1821,12 +1873,474 @@ void myCVlib::bin_rebuildOpen(cv::Mat src, cv::Mat &dst, cv::Mat ground, std::ve
 		cv::Mat mat2 = cv::Mat::zeros(mat1.size(), CV_8UC1);
 		bin_dilate(mat1, mat2, dilate_kernal, dilate_kernal_size);
 		mat1 = mat2.clone();
-		op_and(mat1, ground, mat1);
+		op_bin_and(mat1, ground, mat1);
 		//cv::imshow("1", mat1);
 		//cv::waitKey(0);
 		op_isEqual(mat1, mat3, isEqual);
 	}
 	dst = mat1.clone();
 }
+
+
+void myCVlib::grey_erode(cv::Mat src, cv::Mat &dst) {
+	dst.create(src.size(), CV_8UC1);
+	int size = 3;
+
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
+			int k = 0;
+			char min = src.at <uchar>(i, j);
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x<0 ? 0 : x;
+					x = x >= src.rows ? src.rows - 1 : x;
+					y = y<0 ? 0 : y;
+					y = y >= src.cols ? src.cols - 1 : y;
+					char current = src.at <uchar>(x, y);
+					min = std::min(current, min);
+					k++;
+				}
+			}
+			dst.at<uchar>(i, j) = (uchar)min;
+		}
+	}
+}
+void myCVlib::grey_dilate(cv::Mat src, cv::Mat &dst) {
+	dst.create(src.size(), CV_8UC1);
+	int size = 3;
+
+	for (int i = 0; i < src.rows; i++) {
+		for (int j = 0; j < src.cols; j++) {
+			int k = 0;
+			char max = src.at <uchar>(i, j);
+			for (int m = -size / 2; m <= size / 2; m++) {
+				for (int n = -size / 2; n <= size / 2; n++) {
+					int x = i + m;
+					int y = j + n;
+					x = x<0 ? 0 : x;
+					x = x >= src.rows ? src.rows - 1 : x;
+					y = y<0 ? 0 : y;
+					y = y >= src.cols ? src.cols - 1 : y;
+					char current = src.at <uchar>(x, y);
+					max = std::max(current, max);
+					k++;
+				}
+			}
+			dst.at<uchar>(i, j) = (uchar)max;
+		}
+	}
+}
+void myCVlib::grey_open(cv::Mat src, cv::Mat &dst) {
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	grey_erode(src, mat);
+	grey_dilate(mat, dst);
+}
+void myCVlib::grey_close(cv::Mat src, cv::Mat &dst) {
+	dst.create(src.size(), CV_8UC1);
+	cv::Mat mat;
+	mat.create(src.size(), CV_8UC1);
+	grey_dilate(src, mat);
+	grey_erode(mat, dst);
+}
+
+
+static int Watershed(uchar **OriginalImage, uchar** SeedImage, uchar **LabelImage, int row, int col)
+{
+	using namespace std;
+
+	int Num = 0;                     //标志区域号，从1开始    
+	int i, j;
+
+	std::vector<int*> SeedCounts;       //保存每个队列种子个数容器    
+	std::queue<cv::Point> que;              //临时种子队列    
+	std::vector<std::queue<cv::Point>* > qu;     //保存所有标记区域种子队列的数组    
+
+	int* array;
+	std::queue<cv::Point> *uu;              //指向种子队列的指针    
+	cv::Point temp;
+
+	for (i = 0; i < row; i++)
+		for (j = 0; j < col; j++)
+			LabelImage[i][j] = 0;
+
+
+	int m, n, k = 0;
+	int up, down, right, left, upleft, upright, downleft, downright;
+	// 预处理，提取区分每个标记区域，并初始化每个标记的种子队列    
+	// 种子是指标记区域边缘的点，它们在水位上升时向外生长。     
+	for (i = 0; i < row; i++){
+
+		for (j = 0; j < col; j++)
+		{
+			if (SeedImage[i][j] == 1 || SeedImage[i][j] == 255)  //找到一个标记区域    
+			{
+				Num++;                                      //标志号加1    
+				array = new int[256];
+				memset(array,0, 256 * sizeof(int));
+				//    
+				SeedCounts.push_back(array);
+				uu = new std::queue<cv::Point>[256];
+				qu.push_back(uu);
+				temp.x = i;
+				temp.y = j;
+				que.push(temp);
+				LabelImage[i][j] = Num;
+				SeedImage[i][j] = 127;
+
+				while (!que.empty())
+				{
+					up = down = right = left = 0;
+					upleft = upright = downleft = downright = 0;
+					temp = que.front();
+					m = temp.x;
+					n = temp.y;
+					que.pop();
+
+					if (m > 0)
+					{
+						if (SeedImage[m - 1][n] == 1)
+						{
+							temp.x = m - 1;
+							temp.y = n;
+							que.push(temp);
+							LabelImage[m - 1][n] = Num;
+							SeedImage[m - 1][n] = 127;
+						}
+						else
+						{
+							up = 1;
+						}
+					}
+					if (m > 0 && n > 0)
+					{
+						if (SeedImage[m - 1][n - 1] == 1)
+						{
+							temp.x = m - 1;
+							temp.y = n - 1;
+							que.push(temp);
+							LabelImage[m - 1][n - 1] = Num;
+							SeedImage[m - 1][n - 1] = 127;
+						}
+						else
+						{
+							upleft = 1;
+						}
+					}
+
+					if (m < row - 1)
+					{
+						if (SeedImage[m + 1][n] == 1)
+						{
+							temp.x = m + 1;
+							temp.y = n;
+							que.push(temp);
+							LabelImage[m + 1][n] = Num;
+							SeedImage[m + 1][n] = 127;
+						}
+						else
+						{
+							down = 1;
+						}
+					}
+					if (m < (row - 1) && n < (col - 1))
+					{
+						if (SeedImage[m + 1][n + 1] == 1)
+						{
+							temp.x = m + 1;
+							temp.y = n + 1;
+							que.push(temp);
+							LabelImage[m + 1][n + 1] = Num;
+							SeedImage[m + 1][n + 1] = 127;
+						}
+						else
+						{
+							downright = 1;
+						}
+					}
+
+					if (n < col - 1)
+					{
+						if (SeedImage[m][n + 1] == 1)
+						{
+							temp.x = m;
+							temp.y = n + 1;
+							que.push(temp);
+							LabelImage[m][n + 1] = Num;
+							SeedImage[m][n + 1] = 127;
+						}
+						else
+						{
+							right = 1;
+						}
+					}
+					if (m > 0 && n < (col - 1))
+					{
+						if (SeedImage[m - 1][n + 1] == 1)
+						{
+							temp.x = m - 1;
+							temp.y = n + 1;
+							que.push(temp);
+							LabelImage[m - 1][n + 1] = Num;
+							SeedImage[m - 1][n + 1] = 127;
+						}
+						else
+						{
+							upright = 1;
+						}
+					}
+
+					if (n > 0)
+					{
+						if (SeedImage[m][n - 1] == 1)
+						{
+							temp.x = m;
+							temp.y = n - 1;
+							que.push(temp);
+							LabelImage[m][n - 1] = Num;
+							SeedImage[m][n - 1] = 127;
+						}
+						else
+						{
+							left = 1;
+						}
+					}
+					if (m<(row - 1) && n>0)
+					{
+						if (SeedImage[m + 1][n - 1] == 1)
+						{
+							temp.x = m + 1;
+							temp.y = n - 1;
+							que.push(temp);
+							LabelImage[m + 1][n - 1] = Num;
+							SeedImage[m + 1][n - 1] = 127;
+						}
+						else
+						{
+							downleft = 1;
+						}
+					}
+
+					//上下左右只要有一点不可生长，则本点为初始种子队列的一员    
+					if (up || down || right || left || upleft || downleft || upright || downright)
+					{
+						temp.x = m;
+						temp.y = n;
+						qu[Num - 1][OriginalImage[m][n]].push(temp);
+						SeedCounts[Num - 1][OriginalImage[m][n]]++;
+					}
+				}
+			}
+		}
+}
+
+	bool actives;                                 //某一水位，所有标记种子生长完的标志    
+	int WaterLevel;
+//淹没过程开始，水位从零上升，水位对应灰度级，采用四联通法    
+	for (WaterLevel = 1; WaterLevel < 255; WaterLevel++)
+{
+	actives = true;
+	while (actives)
+	{
+
+		actives = false;
+		for (i = 0; i<Num; i++)
+		{
+			if (!qu[i][WaterLevel].empty())
+			{
+				actives = true;
+				while (SeedCounts[i][WaterLevel]>0)
+				{
+					SeedCounts[i][WaterLevel]--;
+					temp = qu[i][WaterLevel].front();
+					qu[i][WaterLevel].pop();
+					m = temp.x;
+					n = temp.y;
+					if (m > 0)
+					{
+						if (!LabelImage[m - 1][n])
+						{
+							temp.x = m - 1;
+							temp.y = n;
+							LabelImage[m - 1][n] = i + 1;
+
+							//上方点标记为已淹没区域。这个标记与扫描点区域号相同，一定在标号所在区域。    
+							if (OriginalImage[m - 1][n] <= WaterLevel)
+							{
+								qu[i][WaterLevel].push(temp);
+							}
+							else
+							{
+								qu[i][OriginalImage[m - 1][n]].push(temp);
+								SeedCounts[i][OriginalImage[m - 1][n]]++;
+							}
+						}
+					}
+
+					if (m < row - 1)
+					{
+						if (!LabelImage[m + 1][n])
+						{
+							temp.x = m + 1;
+							temp.y = n;
+							LabelImage[m + 1][n] = i + 1;
+
+							if (OriginalImage[m + 1][n] <= WaterLevel)
+							{
+								qu[i][WaterLevel].push(temp);
+							}
+							else
+							{
+								qu[i][OriginalImage[m + 1][n]].push(temp);
+								SeedCounts[i][OriginalImage[m + 1][n]]++;
+							}
+						}
+					}
+
+					if (n < col - 1)
+					{
+						if (!LabelImage[m][n + 1])
+						{
+							temp.x = m;
+							temp.y = n + 1;
+							LabelImage[m][n + 1] = i + 1;
+
+							if (OriginalImage[m][n + 1] <= WaterLevel)
+							{
+								qu[i][WaterLevel].push(temp);
+							}
+							else
+							{
+								qu[i][OriginalImage[m][n + 1]].push(temp);
+								SeedCounts[i][OriginalImage[m][n + 1]]++;
+							}
+						}
+					}
+
+					if (n > 0)
+					{
+						if (!LabelImage[m][n - 1])
+						{
+							temp.x = m;
+							temp.y = n - 1;
+							LabelImage[m][n - 1] = i + 1;
+
+							if (OriginalImage[m][n - 1] <= WaterLevel)
+							{
+								qu[i][WaterLevel].push(temp);
+							}
+							else
+							{
+								qu[i][OriginalImage[m][n - 1]].push(temp);
+								SeedCounts[i][OriginalImage[m][n - 1]]++;
+							}
+						}
+					}
+				}
+				SeedCounts[i][WaterLevel] = (int)qu[i][WaterLevel].size();
+			}
+		}
+	}
+}
+
+while (!qu.empty())
+{
+	uu = qu.back();
+	delete[] uu;
+	qu.pop_back();
+}
+while (!SeedCounts.empty())
+{
+	array = SeedCounts.back();
+	delete[] array;
+	SeedCounts.pop_back();
+}
+return Num;
+}
+
+
+void myCVlib::grey_watershed(cv::Mat src, cv::Mat mask, cv::Mat &dst) {
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::setRNGSeed(time(NULL));
+	cv::waitKey(0);
+	cv::findContours(mask, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_SIMPLE);
+	int type = mask.type();
+	int channels = mask.channels();
+	//cv::imshow("", mask);
+	if (contours.size() == 0)  // 如果没有做标记，即没有轮廓，则退出该if语句
+		return;
+	//cout << contours.size() << "个轮廓" << endl;
+
+	cv::Mat maskWaterShed = cv::Mat(mask.size(), CV_32S);
+	maskWaterShed = cv::Scalar::all(0);
+
+	/* 在maskWaterShed上绘制轮廓 */
+	for (int index = 0; index < contours.size(); index++)
+		cv::drawContours(maskWaterShed, contours, index, cv::Scalar::all(index + 1), -1, 8, hierarchy, INT_MAX);
+	//cv::imshow("2", maskWaterShed);
+	//cv::imshow("1", src);
+
+	/* 如果imshow这个maskWaterShed，我们会发现它是一片黑，原因是在上面我们只给它赋了1,2,3这样的值，通过代码80行的处理我们才能清楚的看出结果 */
+	cv::watershed(src, maskWaterShed);  // 注释一
+
+	std::vector<cv::Vec3b> colorTab;  // 随机生成几种颜色
+	for (int i = 0; i < contours.size(); i++)
+	{
+		int b = cv::theRNG().uniform(0, 255);
+		int g = cv::theRNG().uniform(0, 255);
+		int r = cv::theRNG().uniform(0, 255);
+
+		colorTab.push_back(cv::Vec3b((uchar)b, (uchar)g, (uchar)r));
+	}
+
+	cv::Mat resImg = cv::Mat(src.size(), CV_8UC3);  // 声明一个最后要显示的图像
+	for (int i = 0; i < mask.rows; i++)
+	{
+		for (int j = 0; j < mask.cols; j++)
+		{   // 根据经过watershed处理过的maskWaterShed来绘制每个区域的颜色
+			int index = maskWaterShed.at<int>(i, j);  // 这里的maskWaterShed是经过watershed处理的
+			if (index == -1)  // 区域间的值被置为-1（边界）
+				resImg.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 255, 255);
+			else if (index <= 0 || index > contours.size())  // 没有标记清楚的区域被置为0
+				resImg.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
+			else  // 其他每个区域的值保持不变：1，2，...，contours.size()
+				resImg.at<cv::Vec3b>(i, j) = colorTab[index - 1];  // 然后把这些区域绘制成不同颜色
+		}
+	}
+	//imshow("resImage", resImg);
+	//cv::addWeighted(resImg, 0.3, src, 0.7, 0, resImg);
+	dst = resImg.clone();
+	//imshow("分水岭结果", resImage);
+}
+
+
+void myCVlib::grey_rebuildOpen(cv::Mat src, cv::Mat &dst, cv::Mat ground, int erode_time,int threshold) {
+	cv::Mat mat1, mat2, mat3;
+	mat1 = src.clone();
+	for (int i = 0; i < erode_time; i++) {
+		cv::Mat mat2 = cv::Mat::zeros(mat1.size(), CV_8UC1);
+		grey_erode(mat1, mat2);
+		mat1 = mat2.clone();
+	}
+	bool isEqual = false;
+	int k = 0;
+	while (!isEqual&&k!=threshold) {
+		mat3 = mat1.clone();
+		cv::Mat mat2 = cv::Mat::zeros(mat1.size(), CV_8UC1);
+		grey_dilate(mat1, mat2);
+		mat1 = mat2.clone();
+		op_grey_and(mat1, ground, mat1);
+		//cv::imshow("1", mat1);
+		//cv::waitKey(0);
+		op_isEqual(mat1, mat3, isEqual);
+		k++;
+	}
+	dst = mat1.clone();
+}
+
 
 

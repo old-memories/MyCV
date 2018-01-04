@@ -9,6 +9,7 @@
 #include "GausFilterSliderWidget.h"
 #include "HoughSliderWidget.h"
 #include "SetSEWidget.h"
+#include "WatershedMaskWidget.h"
 
 class MyCV : public QMainWindow
 {
@@ -30,6 +31,7 @@ private:
 	HoughSliderWidget *houghLineWindow;
 	HoughSliderWidget *houghCircleWindow;
 	SetSEWidget *setSEWindow;
+	WatershedMaskWidget * watershedMaskWindow;
 
 	QMenu* file_menu;
 	QMenu* edit_menu;
@@ -55,9 +57,16 @@ private slots:
 	void on_midFilter_action_selected();
 	void on_gausFilter_action_selected();
 	void on_OTSU_action_selected();
+	void on_grey_dilate_action_selected();
+	void on_grey_erode_action_selected();
+	void on_grey_open_action_selected();
+	void on_grey_close_action_selected();
+	void on_grey_watershed_action_selected();
+	void on_grey_watershed(cv::Mat maskImg);
+	void on_grey_rebuildOpen_action_selected();
 	void on_distanceTransform_action_selected();
 	void on_skeleton_action_selected();
-	void on_rebuildOpen_action_selected();
+	void on_bin_rebuildOpen_action_selected();
 	void on_setSE_action_selected();
 	void setSE(std::vector<char>kernal);
 	void on_bin_dilate_action_selected();

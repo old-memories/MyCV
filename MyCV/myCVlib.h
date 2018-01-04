@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
+#include <queue>
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 #include <opencv.hpp>
 #include <imgproc.hpp>
 
@@ -18,7 +20,8 @@ namespace myCVlib {
 	void OTSU(cv::Mat src, cv::Mat& dst);
 	void beaytifyCamera(cv::Mat src, cv::Mat &dst);
 	void  doubleThresholdBinary(cv::Mat src, cv::Mat&dst, int minPixel, int maxPixel);
-	void op_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void op_bin_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void op_grey_and(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
 	void op_isEqual(cv::Mat src1, cv::Mat src2, bool &isEqual);
 	void op_add(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
 	void op_subtract(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
@@ -58,5 +61,10 @@ namespace myCVlib {
 	void distanceTransform(cv::Mat src, cv::Mat &dst, int mode);
 	void skeleton(cv::Mat src, cv::Mat &dst);
 	void bin_rebuildOpen(cv::Mat src, cv::Mat &dst, cv::Mat ground, std::vector<char>erode_kernal, int erode_kernal_size, std::vector<char>dilate_kernal, int dilate_kernal_size, int erode_time);
-
+	void grey_erode(cv::Mat src, cv::Mat &dst);
+	void grey_dilate(cv::Mat src, cv::Mat &dst);
+	void grey_open(cv::Mat src, cv::Mat &dst);
+	void grey_close(cv::Mat src, cv::Mat &dst);
+	void grey_watershed(cv::Mat src,cv::Mat mask, cv::Mat &dst);
+	void grey_rebuildOpen(cv::Mat src, cv::Mat &dst, cv::Mat ground, int erode_time,int threshold);
 }

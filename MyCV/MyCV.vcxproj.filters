@@ -108,6 +108,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_SetSEWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="WatershedMaskWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_WatershedMaskWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_WatershedMaskWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MyCV.h">
@@ -138,6 +147,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="SetSEWidget.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="WatershedMaskWidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

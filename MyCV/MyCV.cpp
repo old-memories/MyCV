@@ -25,34 +25,41 @@ MyCV::MyCV(QWidget *parent)
 	histImageShowLabel->setGeometry(QRect(0, 0, 0, 0));
 	histImageShowLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken); //设置外观
 
+
+	watershedMaskWindow = new WatershedMaskWidget(this);
+	//watershedMaskWindow->resize(600, 250);
+	watershedMaskWindow->setWindowTitle(code->toUnicode("分水岭算法"));
+	connect(watershedMaskWindow, SIGNAL(sendWatershed(cv::Mat)), this, SLOT(on_grey_watershed(cv::Mat)));
+	
+
 	adjustHSLWindow = new HSLSliderWidget(this);
-	adjustHSLWindow->resize(600, 250);
+	//adjustHSLWindow->resize(600, 250);
 	adjustHSLWindow->setWindowTitle(code->toUnicode("色相 饱和度 亮度调节"));
 	//adjustHSLWindow->show();
 	binarizationWindow = new BinarizationSliderWidget(this);
-	binarizationWindow->resize(600, 200);
+	//binarizationWindow->resize(600, 200);
 	binarizationWindow->setWindowTitle(code->toUnicode("双阈值二值化调节"));
 
 	gausFilterWindow = new GausFilterSliderWidget(this);
-	gausFilterWindow->resize(600, 200);
+	//gausFilterWindow->resize(600, 200);
 	gausFilterWindow->setWindowTitle(code->toUnicode("Gauss平滑滤波"));
 
 	cannyWindow = new CannySliderWidget(this);
-	cannyWindow->resize(600, 350);
+	//cannyWindow->resize(600, 350);
 	cannyWindow->setWindowTitle(code->toUnicode("Canny检测"));
 
 	houghLineWindow = new HoughSliderWidget(this);
-	houghLineWindow->resize(600, 600);
+	//houghLineWindow->resize(600, 600);
 	houghLineWindow->setWindowTitle(code->toUnicode("Hough Line"));
 	houghCircleWindow = new HoughSliderWidget(this);
-	houghCircleWindow->resize(600, 600);
+	//houghCircleWindow->resize(600, 600);
 	houghCircleWindow->setWindowTitle(code->toUnicode("Hough Circle"));
 
 	for (int i = 0; i < 25; i++) {
 		kernal.push_back(1);
 	}
 	setSEWindow = new SetSEWidget(this);
-	setSEWindow->resize(300, 300);
+	//setSEWindow->resize(300, 300);
 	setSEWindow->setWindowTitle(code->toUnicode("SE"));
 	connect(setSEWindow, SIGNAL(applySE(std::vector<char>)), this, SLOT(setSE(std::vector<char>)));
 
@@ -188,6 +195,36 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_OTSU, SIGNAL(triggered(bool)), this, SLOT(on_OTSU_action_selected()));
 
 	//QMenu
+	QMenu* grey_menu = new QMenu(code->toUnicode("灰度数学形态学"));
+	edit_menu->addMenu(grey_menu);
+	QAction* action_grey_dilate = new QAction(code->toUnicode("灰度膨胀"));
+	QAction* action_grey_erode = new QAction(code->toUnicode("灰度腐蚀"));
+	QAction* action_grey_open = new QAction(code->toUnicode("灰度开"));
+	QAction* action_grey_close = new QAction(code->toUnicode("灰度闭"));
+	QAction *	action_watershed = new QAction(code->toUnicode("分水岭算法"));
+	QAction *action_grey_rebuildOpen = new QAction(code->toUnicode("重建开操作"));
+
+
+	grey_menu->addAction(action_grey_dilate);
+	grey_menu->addAction(action_grey_erode);
+	grey_menu->addAction(action_grey_open);
+	grey_menu->addAction(action_grey_close);
+	grey_menu->addAction(action_watershed);
+	grey_menu->addAction(action_grey_rebuildOpen);
+
+
+
+	connect(action_grey_dilate, SIGNAL(triggered(bool)), this, SLOT(on_grey_dilate_action_selected()));
+	connect(action_grey_erode, SIGNAL(triggered(bool)), this, SLOT(on_grey_erode_action_selected()));
+	connect(action_grey_open, SIGNAL(triggered(bool)), this, SLOT(on_grey_open_action_selected()));
+	connect(action_grey_close, SIGNAL(triggered(bool)), this, SLOT(on_grey_close_action_selected()));
+	connect(action_watershed, SIGNAL(triggered(bool)), this, SLOT(on_grey_watershed_action_selected()));
+	connect(action_grey_rebuildOpen, SIGNAL(triggered(bool)), this, SLOT(on_grey_rebuildOpen_action_selected()));
+
+
+
+
+	//QMenu
 	QMenu* bin_menu = new QMenu(code->toUnicode("二值数学形态学"));
 	edit_menu->addMenu(bin_menu);
 	QAction* action_setSE = new QAction(code->toUnicode("设置卷积核"));
@@ -198,7 +235,7 @@ MyCV::MyCV(QWidget *parent)
 	QAction *action_bin_thin = new QAction(code->toUnicode("二值细化"));
 	QAction *	action_distanceTransform = new QAction(code->toUnicode("距离变换"));
 	QAction *action_skeleton = new QAction(code->toUnicode("骨架"));
-	QAction *action_rebuildOpen = new QAction(code->toUnicode("重建开操作"));
+	QAction *action_bin_rebuildOpen = new QAction(code->toUnicode("重建开操作"));
 
 	
 	bin_menu->addAction(action_setSE);
@@ -209,7 +246,7 @@ MyCV::MyCV(QWidget *parent)
 	bin_menu->addAction(action_bin_thin);
 	bin_menu->addAction(action_distanceTransform);
 	bin_menu->addAction(action_skeleton);
-	bin_menu->addAction(action_rebuildOpen);
+	bin_menu->addAction(action_bin_rebuildOpen);
 
 
 	connect(action_bin_dilate, SIGNAL(triggered(bool)), this, SLOT(on_bin_dilate_action_selected()));
@@ -220,7 +257,7 @@ MyCV::MyCV(QWidget *parent)
 	connect(action_bin_thin, SIGNAL(triggered(bool)), this, SLOT(on_bin_thin_action_selected()));
 	connect(action_distanceTransform, SIGNAL(triggered(bool)), this, SLOT(on_distanceTransform_action_selected()));
 	connect(action_skeleton, SIGNAL(triggered(bool)), this, SLOT(on_skeleton_action_selected()));
-	connect(action_rebuildOpen, SIGNAL(triggered(bool)), this, SLOT(on_rebuildOpen_action_selected()));
+	connect(action_bin_rebuildOpen, SIGNAL(triggered(bool)), this, SLOT(on_bin_rebuildOpen_action_selected()));
 
 	//QMenu
 	QMenu* arithop_menu = new QMenu(code->toUnicode("图像代数操作"));
@@ -412,8 +449,8 @@ void MyCV::on_mergeRGB_action_selected() {
 void MyCV::on_converetToGrey_action_selected() {
 	cv::Mat mat;
 	myCVlib::convertToGrey(src_image, mat);
-	src_image = mat.clone();
-	imageShowLabel->displayMat(src_image);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
 }
 
 void MyCV::on_showHist_action_selected() {
@@ -442,8 +479,8 @@ void MyCV::on_showHist_action_selected() {
 void MyCV::on_OTSU_action_selected() {
 	cv::Mat mat;
 	myCVlib::OTSU(src_image, mat);
-	src_image = mat.clone();
-	imageShowLabel->displayMat(src_image);
+	//src_image = mat.clone();
+	imageShowLabel->displayMat(mat);
 }
 
 void MyCV::on_distanceTransform_action_selected() {
@@ -456,7 +493,7 @@ void MyCV::on_skeleton_action_selected() {
 	myCVlib::skeleton(src_image, mat);
 	imageShowLabel->displayMat(mat);
 }
-void MyCV::on_rebuildOpen_action_selected() {
+void MyCV::on_bin_rebuildOpen_action_selected() {
 	cv::Mat mat, src2;
 	QString filename = QFileDialog::getOpenFileName(this,
 		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
@@ -485,23 +522,24 @@ void MyCV::showadjustHSLWindow() {
 
 void MyCV::changeImageHSL(double H, double S,double L) {
 	double r, g, b, imgR, imgG, imgB,imgH,imgS,imgL;
+	cv::Mat mat = src_image.clone();
 #if 0
 	myCVlib::HSL2RGB(H,S,L,r,g,b);
-	myCVlib::calculateImageRGB(src_image, imgR, imgG, imgB);
+	myCVlib::calculateImageRGB(mat, imgR, imgG, imgB);
 	double deltaR = r - imgR;
 	double deltaG = g - imgG;
 	double deltaB = b - imgB;
-	myCVlib::changeImageRGB(src_image, deltaR, deltaG, deltaB);
+	myCVlib::changeImageRGB(mat, deltaR, deltaG, deltaB);
 #endif
 #if 1
-	myCVlib::calculateImageRGB(src_image, imgR, imgG, imgB);
+	myCVlib::calculateImageRGB(mat, imgR, imgG, imgB);
 	myCVlib::RGB2HSL(imgR, imgG, imgB, imgH, imgS, imgL);
 	double deltaH = H - imgH;
 	double deltaS = S - imgS;
 	double deltaL = L - imgL;
-	myCVlib::changeImageHSL(src_image, deltaH, deltaS, deltaL);
+	myCVlib::changeImageHSL(mat, deltaH, deltaS, deltaL);
 #endif
-	imageShowLabel->displayMat(src_image);
+	imageShowLabel->displayMat(mat);
 	
 }
 
@@ -759,4 +797,56 @@ void MyCV::on_bin_thin_action_selected() {
 		cv::Mat mat;
 		myCVlib::bin_thin(src_image, mat, 3);
 		imageShowLabel->displayMat(mat);
+}
+
+void  MyCV::on_grey_dilate_action_selected() {
+	cv::Mat mat;
+	myCVlib::grey_dilate(src_image, mat);
+	imageShowLabel->displayMat(mat);
+}
+void  MyCV::on_grey_erode_action_selected() {
+	cv::Mat mat;
+	myCVlib::grey_erode(src_image, mat);
+	imageShowLabel->displayMat(mat);
+}
+void  MyCV::on_grey_open_action_selected() {
+	cv::Mat mat;
+	myCVlib::grey_open(src_image, mat);
+	imageShowLabel->displayMat(mat);
+}
+void  MyCV::on_grey_close_action_selected() {
+	cv::Mat mat;
+	myCVlib::grey_close(src_image, mat);
+	imageShowLabel->displayMat(mat);
+}
+void  MyCV::on_grey_watershed_action_selected() {
+	cv::Mat mat, mask;
+	//myCVlib::grey_watershed(src_image, mat);
+	mat = src_image.clone();
+	watershedMaskWindow->setImg(mat);
+	watershedMaskWindow->show();
+	//imageShowLabel->displayMat(mat);
+}
+
+void MyCV::on_grey_watershed(cv::Mat maskMat) {
+	cv::Mat mat;
+	myCVlib::grey_watershed(src_image, maskMat,mat);
+	imageShowLabel->displayMat(mat);
+}
+
+void  MyCV::on_grey_rebuildOpen_action_selected() {
+	cv::Mat mat, src2;
+	QString filename = QFileDialog::getOpenFileName(this,
+		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
+	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
+	src2 = cv::imread(name, cv::IMREAD_UNCHANGED);
+	int channels = src2.channels();
+	//cv::imshow(name.c_str(), image);
+	//cv::waitKey();
+	if (!src2.data)
+	{
+		return;
+	}
+	myCVlib::grey_rebuildOpen(src_image, mat, src2,1,20);
+	imageShowLabel->displayMat(mat);
 }
