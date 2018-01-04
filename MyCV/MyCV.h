@@ -35,6 +35,7 @@ private:
 	QMenu* edit_menu;
 	QMenu* addition_menu;
 	cv::Mat src_image;
+	std::string currentFilename;
 	std::vector<char> kernal;
 	void setEnable_when_displayMat();
 	enum ImageStatus {NO_IMAGE,IMAGE_REMAINED,IMAGE_CHANGED} imageStatus;
@@ -70,7 +71,9 @@ private slots:
 	void changeImageHSL(double H, double S, double L);
 	void showbinarizationWindow();
 	void changeBinarization(int minPixel, int maxPixel);
+	void on_save_action_selected();
 	void on_saveas_action_selected();
+	void on_undo_action_selected();
 	void on_canny_action_selected();
 	void on_sobel_action_selected();
 	void on_laplace_action_selected();

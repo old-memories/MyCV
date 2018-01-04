@@ -76,11 +76,26 @@ MyCV::MyCV(QWidget *parent)
 	ui.mainToolBar->addAction(action_open);
 	connect(action_open, SIGNAL(triggered(bool)), this, SLOT(on_open_action_selected()));
 
+
 	//QAction
-	QAction* action_save = new QAction(QIcon("png/folder_plus_icon&32.png"), code->toUnicode("另存为"));
+	QAction* action_save = new QAction(QIcon("png/folder_icon&32.png"), code->toUnicode("保存"));
 	file_menu->addAction(action_save);
 	ui.mainToolBar->addAction(action_save);
-	connect(action_save, SIGNAL(triggered(bool)), this, SLOT(on_saveas_action_selected()));
+	connect(action_save, SIGNAL(triggered(bool)), this, SLOT(on_save_action_selected()));
+
+	//QAction
+	QAction* action_saveas = new QAction(QIcon("png/folder_plus_icon&32.png"), code->toUnicode("另存为"));
+	file_menu->addAction(action_saveas);
+	ui.mainToolBar->addAction(action_saveas);
+	connect(action_saveas, SIGNAL(triggered(bool)), this, SLOT(on_saveas_action_selected()));
+
+	//QAction
+	QAction* action_undo = new QAction(QIcon("png/round_and_up_icon&32.png"), code->toUnicode("撤销"));
+	file_menu->addAction(action_undo);
+	ui.mainToolBar->addAction(action_undo);
+	connect(action_undo, SIGNAL(triggered(bool)), this, SLOT(on_undo_action_selected()));
+
+	
 
 	//QAction
 	QAction* action_adjustHSL = new QAction(code->toUnicode("色相 饱和度 亮度调节"));
@@ -295,6 +310,7 @@ void MyCV::on_open_action_selected()
 	QString filename = QFileDialog::getOpenFileName(this,
 		code->toUnicode("打开图片"), ".", tr("Image File (*.jpg *.png *.bmp)"));
 	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
+	currentFilename = name;
 	src_image = cv::imread(name, cv::IMREAD_UNCHANGED);
 	//cv::imshow(name.c_str(), image);
 	//cv::waitKey();
@@ -311,8 +327,32 @@ void MyCV::on_open_action_selected()
 	}
 }
 
+void MyCV::on_undo_action_selected() {
+	if (currentFilename == "")
+		return;
+	setEnable_when_displayMat();
+	imageStatus = NO_IMAGE;
+	imageShowLabel->displayMat(src_image);
+	this->setWindowTitle(QString(currentFilename.c_str()) + QString(" - My openCV"));
+}
+
+
+
+void MyCV::on_save_action_selected() {
+	if (currentFilename == "")
+		return;
+	cv::imwrite(currentFilename, imageShowLabel->image);
+	src_image = imageShowLabel->image.clone();
+	imageStatus = NO_IMAGE;
+	imageShowLabel->displayMat(src_image);
+	this->setWindowTitle(QString(currentFilename.c_str()) + QString(" - My openCV"));
+}
+
+
 void MyCV::on_saveas_action_selected()
-{
+{	
+	if (currentFilename == "")
+		return;
 	QString filename = QFileDialog::getSaveFileName(this,
 		code->toUnicode("另存为"), "", tr("*.bmp;; *.png;; *.jpg;; *.tif;; *.GIF"));
 	if (filename.isEmpty())
@@ -320,7 +360,7 @@ void MyCV::on_saveas_action_selected()
 		return;
 	}
 	std::string name = code->fromUnicode(filename).data();//filename.toAscii().data()
-	
+	currentFilename = name;
 	cv::imwrite(name,imageShowLabel->image);
 	src_image = imageShowLabel->image.clone();
 	imageStatus = NO_IMAGE;
