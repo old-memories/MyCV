@@ -1347,11 +1347,15 @@ void myCVlib::createhoughCircle(cv::Mat src, cv::Mat sobel_x, cv::Mat sobel_y, s
 }
 
 void myCVlib::houghCircle(cv::Mat src, cv::Mat &dst, double dp, double min_dist, double canny_threshold, double threshold, int minRadius, int maxRadius) {
-	cv::Mat mat;
+	cv::Mat mat, gausMat;
 	mat.create(src.size(), CV_8UC1);
-	gausFilter(src, mat, 9, 3);
+	gausMat.create(src.size(), CV_8UC1);
+	convertToGrey(src, mat);
+	gausFilter(mat, gausMat, 9, 3);
 	std::vector<cv::Vec3f> circles;
-	cv::HoughCircles(mat, circles, CV_HOUGH_GRADIENT, dp, min_dist, canny_threshold, threshold, minRadius, maxRadius);
+	cv::HoughCircles(gausMat, circles, CV_HOUGH_GRADIENT, dp, min_dist, canny_threshold, threshold, minRadius, maxRadius);
+	if (circles.size() == 0)
+	return;
 	for (int i = 0; i < circles.size(); i++) {
 		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 		int radius = cvRound(circles[i][2]);

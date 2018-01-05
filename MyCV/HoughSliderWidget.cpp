@@ -122,8 +122,8 @@ void HoughSliderWidget::initHough(double _line_threshold, double _dp, double _mi
 	minRadius = _minRadius;
 	maxRadius = _maxRadius;
 
-	slider_line_threshold->setMinimum(0);
-	slider_line_threshold->setMaximum(800);
+	slider_line_threshold->setMinimum(1);
+	slider_line_threshold->setMaximum(200);
 
 	slider_dp->setMinimum(-4);
 	slider_dp->setMaximum(4);
@@ -132,11 +132,11 @@ void HoughSliderWidget::initHough(double _line_threshold, double _dp, double _mi
 	slider_min_dist->setMaximum(100);
 
 
-	slider_canny_threshold->setMinimum(0);
+	slider_canny_threshold->setMinimum(1);
 	slider_canny_threshold->setMaximum(255);
 
 	slider_circle_threshold->setMinimum(1);
-	slider_circle_threshold->setMaximum(800);
+	slider_circle_threshold->setMaximum(200);
 
 	slider_minRadius->setMinimum(-10);
 	slider_minRadius->setMaximum(10);
